@@ -51,6 +51,7 @@ impl Chunk for Vec<u8> {
             // Run handler for op, we get next part of function and possible value to push to stack
             let new_offset = handler(&args, offset, &mut stack);
             offset = new_offset;
+            println!("\t{:?}", stack);
         }
     }
 }

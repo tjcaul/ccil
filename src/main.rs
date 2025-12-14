@@ -4,7 +4,7 @@ mod parser;
 mod vm;
 
 fn main() {
-    let mut chunk: Vec<u8> = Chunk::from_file("test.bytes");
+    let chunk: Vec<u8> = Chunk::from_file("./bytecode/test.ccilb");
     /*
     let mut chunk = Vec::<u8>::new();
     chunk.write_op(vm::opcode::OpCode::Nop);

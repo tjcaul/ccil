@@ -2,6 +2,7 @@ use petgraph::graph::Graph;
 pub mod expr;
 pub mod token;
 
+#[allow(unused)]
 /// Parses the input string and returns a AST.
 fn parse(input: &str) -> Graph<(), ()> {
     let mut graph: Graph<(), ()> = Graph::new();

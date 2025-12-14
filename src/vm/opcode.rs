@@ -8,6 +8,7 @@ pub enum OpCode {
 }
 
 impl OpCode {
+    #[allow(unused)]
     pub fn byte_value(&self) -> u8 {
         match *self {
             OpCode::Nop => 0,

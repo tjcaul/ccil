@@ -1,8 +1,10 @@
 
 use crate::vm::opcode::OpCode;
 
+#[allow(unused)]
 pub trait Chunk {
     fn from_file(path: &str) -> Self;
+    fn to_file(&self, path: &str);
     fn write_byte(&mut self, byte: u8);
     fn write_op(&mut self, opcode: OpCode);
     fn write_arg(&mut self, arg: u32);
@@ -16,6 +18,14 @@ impl Chunk for Vec<u8> {
         match result {
             Ok(vec) => vec,
             Err(_) => panic!("Failed to read chunk file")
+        }
+    }
+
+    fn to_file(&self, path: &str) {
+        let result = std::fs::write(path, self);
+        match result {
+            Ok(_) => {},
+            Err(_) => panic!("Failed to write chunk file")
         }
     }
 
@@ -57,9 +67,8 @@ impl Chunk for Vec<u8> {
                 args.push(self.read_arg(offset + 1 + 4*i) as usize);
             }
 
-            // Run handler for op, we get next part of function and possible value to push to stack
-            let new_offset = handler(&args, offset, &mut stack);
-            offset = new_offset;
+            // Run handler for op, we get next offset
+            offset = handler(&args, offset, &mut stack);
             println!("\t{:?}", stack);
         }
     }

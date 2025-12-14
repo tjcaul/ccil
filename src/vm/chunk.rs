@@ -2,6 +2,7 @@
 use crate::vm::opcode::OpCode;
 
 pub trait Chunk {
+    fn from_file(path: &str) -> Self;
     fn write_byte(&mut self, byte: u8);
     fn write_op(&mut self, opcode: OpCode);
     fn write_arg(&mut self, arg: u32);
@@ -10,6 +11,14 @@ pub trait Chunk {
 }
 
 impl Chunk for Vec<u8> {
+    fn from_file(path: &str) -> Self {
+        let result = std::fs::read(path);
+        match result {
+            Ok(vec) => vec,
+            Err(_) => panic!("Failed to read chunk file")
+        }
+    }
+
     fn write_byte(&mut self, byte: u8) {
         self.push(byte);
     }

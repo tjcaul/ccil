@@ -1,0 +1,72 @@
+use std::{fs, process::exit};
+
+use clap::Parser;
+
+use crate::vm::{chunk::Chunk, opcode::OpCodeLookup};
+mod vm;
+
+/// ccil bytecode disassembler
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+struct Args {
+    /// Path of ccil assembly file
+    input_path: String,
+
+    /// Output file (required if compiling, ignored if executing)
+    #[arg(short, long, default_value_t = String::new())]
+    output_path: String
+}
+
+fn main() {
+    let opcode_lookup = OpCodeLookup::new();
+
+    let args = Args::parse();
+    
+    if args.output_path.is_empty() {
+        eprintln!("Output file not specified, run --help for more info");
+        exit(1);
+    }
+
+    let chunk = match fs::read(args.input_path) {
+        Ok(val) => val,
+        Err(error) => {
+            eprintln!("Failed to read input file: {}", error);
+            exit(1);
+        }
+    };
+    let mut offset = 0;
+
+    let mut assembly = String::new();
+
+    while offset < chunk.len() {
+        let opcode_byte = chunk[offset];
+        let opcode = match opcode_lookup.from_byte(opcode_byte) {
+            Some(val) => val,
+            None => {
+                eprintln!("Error at offset {}: {} does not match with a valid opcode", offset, opcode_byte);
+                exit(1);
+            }
+        };
+        offset += 1;
+
+        assembly += opcode.symbol;
+
+        for _ in 0..opcode.num_params {
+            let arg = chunk.read_arg(offset);
+            assembly.push_str(&format!(" {}", arg));
+            offset += 4;
+        }
+
+        assembly += "\n";
+    }
+
+    match fs::write(args.output_path, assembly) {
+        Ok(_) => {},
+        Err(error) => {
+            eprintln!("Failed to write to output file: {}", error);
+            exit(1);
+        }
+    };
+
+    exit(0);
+}

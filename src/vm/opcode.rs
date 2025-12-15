@@ -2,6 +2,7 @@ use std::collections::BTreeMap;
 use crate::vm::handle_op;
 use crate::vm::handle_op::OpcodeHandler;
 
+#[allow(dead_code)]
 pub struct OpCode<'a> {
     pub symbol: &'a str,
     pub byte: u8,

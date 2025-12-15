@@ -1,10 +1,11 @@
-use crate::vm::chunk::Chunk;
+use crate::vm::{chunk::Chunk, opcode::OpCodeLookup};
 
 mod parser;
 mod vm;
 
 fn main() {
     let chunk: Vec<u8> = Chunk::from_file("./bytecode/test.ccilb");
+    let opcode_lookup = OpCodeLookup::new();
     /*
     let mut chunk = Vec::<u8>::new();
     chunk.write_op(vm::opcode::OpCode::Nop);
@@ -17,5 +18,5 @@ fn main() {
     chunk.write_arg(1);
     */
 
-    chunk.execute();
+    chunk.execute(&opcode_lookup);
 }

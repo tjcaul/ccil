@@ -1,5 +1,7 @@
 use crate::vm::stack::Stack;
 
+pub type OpcodeHandler = fn(&[usize], usize, &mut Vec<u8>) -> usize;
+
 pub fn handle_nop(params: &[usize], offset: usize, _stack: &mut Vec<u8>) -> usize {
     assert_eq!(params.len(), 0);
 

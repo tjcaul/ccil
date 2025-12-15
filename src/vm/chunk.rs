@@ -1,15 +1,14 @@
-
-use crate::vm::opcode::OpCode;
+use crate::vm::opcode::{OpCode, OpCodeLookup};
 
 #[allow(unused)]
 pub trait Chunk {
     fn from_file(path: &str) -> Self;
     fn to_file(&self, path: &str);
     fn write_byte(&mut self, byte: u8);
-    fn write_op(&mut self, opcode: OpCode);
+    fn write_op(&mut self, opcode: &OpCode);
     fn write_arg(&mut self, arg: u32);
     fn read_arg(&self, offset: usize) -> u32;
-    fn execute(&self);
+    fn execute(&self, lookup: &OpCodeLookup);
 }
 
 impl Chunk for Vec<u8> {
@@ -33,8 +32,8 @@ impl Chunk for Vec<u8> {
         self.push(byte);
     }
 
-    fn write_op(&mut self, opcode: OpCode) {
-        self.write_byte(opcode.byte_value())
+    fn write_op(&mut self, opcode: &OpCode) {
+        self.write_byte(opcode.byte)
     }
 
     fn write_arg(&mut self, arg: u32) {
@@ -51,24 +50,25 @@ impl Chunk for Vec<u8> {
         | (self[offset+3] as u32) << 24
     }
 
-    fn execute(&self) {
+    fn execute(&self, lookup: &OpCodeLookup) {
         let mut offset = 0;
         let mut stack = Vec::<u8>::new();
 
         while offset < self.len() {
             // Get opcode at current pos (guaranteed to be opcode by invariant)
             print!("{} ", offset);
-            let chunk_code = OpCode::from_byte(self[offset]);
+            let chunk_code = match lookup.from_byte(self[offset]) {
+                Some(opcode) => opcode,
+                None => panic!("Unknown opcode with value {:x}", self[offset])
+            };
             
-            // get handler, and number of args
-            let (handler, num_args) = chunk_code.get_handler();
             let mut args = Vec::<usize>::new();
-            for i in 0..num_args {
+            for i in 0..chunk_code.num_params {
                 args.push(self.read_arg(offset + 1 + 4*i) as usize);
             }
 
             // Run handler for op, we get next offset
-            offset = handler(&args, offset, &mut stack);
+            offset = (chunk_code.handler)(&args, offset, &mut stack);
             println!("\t{:?}", stack);
         }
     }

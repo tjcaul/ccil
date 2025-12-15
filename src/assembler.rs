@@ -1,8 +1,8 @@
-use std::{fs, process::exit, str::{FromStr}};
+use std::{fs, process::exit};
 
 use clap::Parser;
 
-use crate::vm::{chunk::Chunk, opcode::OpCode};
+use crate::vm::{chunk::Chunk, opcode::OpCode, opcode::OpCodeLookup};
 
 mod vm;
 
@@ -22,22 +22,9 @@ struct Args {
     output_path: String
 }
 
-// More dirty repetitive matching, we should really fix this sometime
-impl FromStr for OpCode {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "nop" => Ok(OpCode::Nop),
-            "return" => Ok(OpCode::Return),
-            "add" => Ok(OpCode::Add),
-            "constant" => Ok(OpCode::Constant),
-            _ => Err("Invalid Opcode".to_string())
-        }
-    }
-}
-
 fn main() {
+    let opcode_lookup = OpCodeLookup::new();
+
     let args = Args::parse();
     
     if !args.execute && args.output_path.is_empty() {
@@ -66,15 +53,16 @@ fn main() {
 
         // get opcode from first value of split (guaranteed to exist)
         let opcode_str = &line_split[0].to_lowercase();
-        let line_opcode = match OpCode::from_str(opcode_str) {
-            Ok(val) => val,
-            Err(_) => {
-                eprintln!("Error assembling line {}: invalid opcode {}", i, opcode_str);
-                exit(1);
-            }
+
+        let line_opcode: &OpCode = match opcode_lookup.from_symbol(opcode_str) {
+            Some(opcode) => opcode,
+            None => panic!(
+                "Error assembling line {}: invalid opcode {}",
+                i, opcode_str
+            )
         };
         
-        let (_, num_args) = line_opcode.get_handler();
+        let num_args = line_opcode.num_params;
         if num_args + 1 != line_split.len() {
             eprintln!("Error assembling line {}: expected {} args for opcode {} but got {}", i, num_args, opcode_str, line_split.len());
             exit(1);
@@ -95,7 +83,7 @@ fn main() {
     }
 
     if args.execute {
-        chunk.execute();
+        chunk.execute(&opcode_lookup);
     } else {
         chunk.to_file(&args.output_path);
     }

@@ -12,7 +12,7 @@ struct Args {
     /// Path of ccil assembly file
     input_path: String,
 
-    /// Output file (required if compiling, ignored if executing)
+    /// Output file
     #[arg(short, long, default_value_t = String::new())]
     output_path: String
 }

@@ -3,6 +3,7 @@ use std::{fs, process::exit};
 use clap::Parser;
 
 use crate::vm::{chunk::Chunk, opcode::OpCode, opcode::OpCodeLookup};
+use crate::vm::stack::StackPointer;
 
 mod vm;
 
@@ -71,7 +72,7 @@ fn main() {
         // finally, write instruction
         chunk.write_op(line_opcode);
         for arg in &line_split[1..] {
-            let int_arg = match arg.parse::<u32>() {
+            let int_arg = match arg.parse::<StackPointer>() {
                 Ok(val) => val,
                 Err(_) => {
                     eprintln!("Error assembling line {}: arg is not a number", i);

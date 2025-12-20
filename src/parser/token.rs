@@ -30,6 +30,6 @@ pub enum Token {
 #[allow(unused)]
 impl Token {
     fn needs_value(self) -> bool {
-        return matches!(self, Token::String(_)) || matches!(self, Token::Number(_))
+        matches!(self, Token::String(_)) || matches!(self, Token::Number(_))
     }
 }

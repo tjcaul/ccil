@@ -79,10 +79,10 @@ pub enum Token {
 
     // Literal
     // We need 64 bits of float for guaranteed lossless conversion between num and float
-    String(String), Number(i32), Float(f64),
+    String(String), Number(i32), Float(f64), Boolean(bool),
 
     // Keywords
-    Var, Func, For, While, Print, Return, If, True, False, Null,
+    Var, Func, For, While, Print, Return, If, Null,
 
     // Misc
     EOF
@@ -172,7 +172,7 @@ impl Token {
             // Yes this is the best way
             "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => slice_to_end.tokenize_number_or_float(),
 
-            // For other keywords, instead go until next whitespace and match
+            // For other keywords (and true and false), instead go until next whitespace and match
             _ => match slice_to_end.preprocess_until_whitespace_or_semicolon() {
                 "var" => (Token::Var, 3),
                 "func" => (Token::Func, 4),
@@ -181,8 +181,8 @@ impl Token {
                 "print" => (Token::Print, 5),
                 "return" => (Token::Return, 6),
                 "if" => (Token::If, 2),
-                "true" => (Token::True, 4),
-                "false" => (Token::False, 5),
+                "true" => (Token::Boolean(true), 4),
+                "false" => (Token::Boolean(false), 5),
                 "null" => (Token::Null, 4),
                 _ => panic!("Unknown keyword found while tokenizing")
             }

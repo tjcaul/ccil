@@ -1,22 +1,14 @@
-use crate::vm::{chunk::Chunk, opcode::OpCodeLookup};
+use std::fs::read_to_string;
+
+use crate::parser::token::Token;
 
 mod parser;
 mod vm;
 
 fn main() {
-    let chunk: Vec<u8> = Chunk::from_file("./bytecode/test.ccilb");
-    let opcode_lookup = OpCodeLookup::new();
-    /*
-    let mut chunk = Vec::<u8>::new();
-    chunk.write_op(vm::opcode::OpCode::Nop);
-    chunk.write_op(vm::opcode::OpCode::Constant);
-    chunk.write_arg(6);
-    chunk.write_op(vm::opcode::OpCode::Constant);
-    chunk.write_arg(7);
-    chunk.write_op(vm::opcode::OpCode::Add);
-    chunk.write_arg(0);
-    chunk.write_arg(1);
-    */
+    let source_file = read_to_string("ccil_source_files/tokenizer_stress_test.ccil").unwrap();
 
-    chunk.execute(&opcode_lookup);
+    let scan_result = Token::full_scan(&source_file);
+
+    println!("{:?}", scan_result);
 }

@@ -11,7 +11,7 @@ impl TokenHelper for &str {
         let mut trimming = self.trim_start();
         while trimming.len() > 1 && &trimming[0..2] == "//" {
             // get rid of comments, up till next newline
-            trimming = &trimming[0..trimming.find("\n").unwrap_or(trimming.len())];
+            trimming = &trimming[trimming.find("\n").unwrap_or(trimming.len())..];
             // get rid of whitespace (incl the newline)
             trimming = trimming.trim_start();
         }
@@ -56,6 +56,7 @@ impl TokenHelper for &str {
 }
 
 #[allow(unused)]
+#[derive(Debug, PartialEq)]
 pub enum Token {
     // Single-char
     LeftParen, RightParen,
@@ -89,7 +90,7 @@ pub enum Token {
 
 #[allow(unused)]
 impl Token {
-    fn needs_value(self) -> bool {
+    pub fn needs_value(self) -> bool {
         matches!(self, Token::String(_)) || matches!(self, Token::Number(_))
     }
 
@@ -188,5 +189,16 @@ impl Token {
         };
 
         return (found_token, &slice_to_end[length..].trim_start_comments());
+    }
+
+    pub fn full_scan(input: &str) -> Vec<Self> {
+        let mut remaining = input;
+        let mut retval = Vec::<Token>::new();
+        while retval.last().unwrap_or(&Token::LeftParen) != &Token::EOF {
+            let (next_token, unused_slice) = Token::scan_token(remaining);
+            retval.push(next_token);
+            remaining = unused_slice;
+        }
+        return retval;
     }
 }

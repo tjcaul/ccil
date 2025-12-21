@@ -91,7 +91,38 @@ pub enum Token {
 #[allow(unused)]
 impl Token {
     pub fn needs_value(self) -> bool {
-        matches!(self, Token::String(_)) || matches!(self, Token::Number(_))
+        matches!(self, Token::String(_)) ||
+        matches!(self, Token::Number(_)) ||
+        matches!(self, Token::Float(_)) ||
+        matches!(self, Token::Boolean(_))
+    }
+
+    pub fn get_string(self) -> Option<String> {
+        match self {
+            Token::String(s) => Some(s),
+            _ => None
+        }
+    }
+
+    pub fn get_number(self) -> Option<i32> {
+        match self {
+            Token::Number(n) => Some(n),
+            _ => None
+        }
+    }
+
+    pub fn get_float(self) -> Option<f64> {
+        match self {
+            Token::Float(f) => Some(f),
+            _ => None
+        }
+    }
+
+    pub fn get_boolean(self) -> Option<bool> {
+        match self {
+            Token::Boolean(b) => Some(b),
+            _ => None
+        }
     }
 
     /// Returns a token from the remaining text, following grammar rules.

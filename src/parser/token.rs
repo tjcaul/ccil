@@ -85,7 +85,7 @@ pub enum Token {
     Var, Func, For, While, Print, Return, If, Null,
 
     // Misc
-    EOF
+    VarName(String), EOF
 }
 
 #[allow(unused)]
@@ -121,6 +121,13 @@ impl Token {
     pub fn get_boolean(self) -> Option<bool> {
         match self {
             Token::Boolean(b) => Some(b),
+            _ => None
+        }
+    }
+
+    pub fn get_var_name(self) -> Option<String> {
+        match self {
+            Token::VarName(v) => Some(v),
             _ => None
         }
     }

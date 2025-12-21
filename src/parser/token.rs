@@ -141,60 +141,60 @@ impl Token {
             return (Token::EOF, "");
         }
 
-        let (found_token, length) = match &slice_to_end[0..1] {
+        let (found_token, length) = match &slice_to_end.chars().next().unwrap() {
             // Unambiguous single-chars are the easiest; we simply match directly.
-            "(" => (Token::LeftParen, 1),
-            ")" => (Token::RightParen, 1),
-            "{" => (Token::LeftCurly, 1),
-            "}" => (Token::RightCurly, 1),
-            "[" => (Token::LeftSquare, 1),
-            "]" => (Token::RightSquare, 1),
-            "," => (Token::Comma, 1),
-            "." => (Token::Dot, 1),
-            "-" => (Token::Minus, 1),
-            "+" => (Token::Plus, 1),
+            '(' => (Token::LeftParen, 1),
+            ')' => (Token::RightParen, 1),
+            '{' => (Token::LeftCurly, 1),
+            '}' => (Token::RightCurly, 1),
+            '[' => (Token::LeftSquare, 1),
+            ']' => (Token::RightSquare, 1),
+            ',' => (Token::Comma, 1),
+            '.' => (Token::Dot, 1),
+            '-' => (Token::Minus, 1),
+            '+' => (Token::Plus, 1),
             // Guaranteed to be fine since we treat comments as whitespace
-            "/" => (Token::Slash, 1),
-            "*" => (Token::Star, 1),
-            ";" => (Token::Semicolon, 1),
+            '/' => (Token::Slash, 1),
+            '*' => (Token::Star, 1),
+            ';' => (Token::Semicolon, 1),
 
             // These leading tokens could vary in meaning based on second token.
-            "=" => {
+            '=' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
                     (Token::DoubleEqual, 2)
                 } else {
                     (Token::Equal, 1)
                 }
             }
-            "!" => {
+            '!' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
                     (Token::BangEqual, 2)
                 } else {
                     (Token::Bang, 1)
                 }
             }
-            "<" => {
+            '<' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
                     (Token::GreaterThanEqual, 2)
                 } else {
                     (Token::GreaterThan, 1)
                 }
             }
-            ">" => {
+            '>' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
                     (Token::LessThanEqual, 2)
                 } else {
                     (Token::LessThan, 1)
                 }
             }
-            "&" => {
+            '&' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "&" {
                     (Token::And, 2)
                 } else {
                     (Token::SingleAnd, 1)
                 }
             }
-            "|" => {
+            '|' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "|" {
                     (Token::Or, 2)
                 } else {
@@ -204,11 +204,10 @@ impl Token {
 
             // Literals can be done via some matching trickery
             // For strings, just detect opening quote and delegate to function from there
-            "\"" => slice_to_end[1..].tokenize_string(),
+            '"' => slice_to_end[1..].tokenize_string(),
 
             // For numbers and floats, detect starting digit
-            // Yes this is the best way
-            "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" => slice_to_end.tokenize_number_or_float(),
+            '0' ..= '9' => slice_to_end.tokenize_number_or_float(),
 
             // For other keywords (and true and false), instead go until next whitespace and match
             _ => match slice_to_end.preprocess_until_whitespace_or_semicolon() {

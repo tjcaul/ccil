@@ -1,59 +1,50 @@
-trait TokenHelper {
-    fn trim_start_comments(self) -> Self;
-    fn tokenize_string(self) -> (Token, usize);
-    fn tokenize_number_or_float(self) -> (Token, usize);
-    fn preprocess_until_interrupted(self) -> Self;
+/// Helper function to remove comments along with whitespace
+fn trim_start_comments(remaining_block: &str) -> &str {
+    let mut trimming = remaining_block.trim_start();
+    while trimming.len() > 1 && &trimming[0..2] == "//" {
+        // get rid of comments, up till next newline
+        trimming = &trimming[trimming.find("\n").unwrap_or(trimming.len())..];
+        // get rid of whitespace (incl the newline)
+        trimming = trimming.trim_start();
+    }
+    return trimming;
 }
 
-impl TokenHelper for &str {
-    /// Helper function to remove comments along with whitespace
-    fn trim_start_comments(self) -> Self {
-        let mut trimming = self.trim_start();
-        while trimming.len() > 1 && &trimming[0..2] == "//" {
-            // get rid of comments, up till next newline
-            trimming = &trimming[trimming.find("\n").unwrap_or(trimming.len())..];
-            // get rid of whitespace (incl the newline)
-            trimming = trimming.trim_start();
-        }
-        return trimming;
+/// Helper function to tokenize string literal
+fn tokenize_string(remaining_block: &str) -> (Token, usize) {
+    let closing_index = match remaining_block.find("\"") {
+        Some(val) => val,
+        None => panic!("No closing quote found when parsing string literal")
+    };
+
+    // Need to account for two quotation marks in size
+    return (Token::String(remaining_block[0..closing_index].to_string()), closing_index + 2);
+}
+
+/// Helper function to tokenize numbers or floats, returning appropriate token type
+fn tokenize_number_or_float(remaining_block: &str) -> (Token, usize) {
+    let full_literal = preprocess_until_interrupted(remaining_block);
+
+    match full_literal.parse::<i32>() {
+        Ok(val) => return (Token::Number(val), full_literal.len()),
+        Err(_) => {}
+    };
+
+    match full_literal.parse::<f64>() {
+        Ok(val) => return (Token::Float(val), full_literal.len()),
+        Err(_) => panic!("Illegal number detected")
     }
+}
 
-    /// Helper function to tokenize string literal
-    fn tokenize_string(self) -> (Token, usize) {
-        let closing_index = match self.find("\"") {
-            Some(val) => val,
-            None => panic!("No closing quote found when parsing string literal")
-        };
+/// Helper function to preprocess (not tokenize) whitespace, semicolon or comment-separated info
+fn preprocess_until_interrupted(remaining_block: &str) -> &str {
+    let next_whitespace = remaining_block.find(char::is_whitespace).unwrap_or(remaining_block.len());
+    let next_comment = remaining_block.find("//").unwrap_or(remaining_block.len());
+    let next_semicolon = remaining_block.find(";").unwrap_or(remaining_block.len());
 
-        // Need to account for two quotation marks in size
-        return (Token::String(self[0..closing_index].to_string()), closing_index + 2);
-    }
+    let closing_index = std::cmp::min(next_whitespace, std::cmp::min(next_comment, next_semicolon));
 
-    /// Helper function to tokenize numbers or floats, returning appropriate token type
-    fn tokenize_number_or_float(self) -> (Token, usize) {
-        let full_literal = self.preprocess_until_interrupted();
-
-        match full_literal.parse::<i32>() {
-            Ok(val) => return (Token::Number(val), full_literal.len()),
-            Err(_) => {}
-        };
-
-        match full_literal.parse::<f64>() {
-            Ok(val) => return (Token::Float(val), full_literal.len()),
-            Err(_) => panic!("Illegal number detected")
-        }
-    }
-
-    /// Helper function to preprocess (not tokenize) whitespace, semicolon or comment-separated info
-    fn preprocess_until_interrupted(self) -> Self {
-        let next_whitespace = self.find(char::is_whitespace).unwrap_or(self.len());
-        let next_comment = self.find("//").unwrap_or(self.len());
-        let next_semicolon = self.find(";").unwrap_or(self.len());
-
-        let closing_index = std::cmp::min(next_whitespace, std::cmp::min(next_comment, next_semicolon));
-
-        return &self[0..closing_index];
-    }
+    return &remaining_block[0..closing_index];
 }
 
 #[allow(unused)]
@@ -205,13 +196,13 @@ impl Token {
 
             // Literals can be done via some matching trickery
             // For strings, just detect opening quote and delegate to function from there
-            '"' => slice_to_end[1..].tokenize_string(),
+            '"' => tokenize_string(&slice_to_end[1..]),
 
             // For numbers and floats, detect starting digit
-            '0' ..= '9' => slice_to_end.tokenize_number_or_float(),
+            '0' ..= '9' => tokenize_number_or_float(slice_to_end),
 
             // For other keywords (and true and false), instead go until next whitespace and match
-            _ => match slice_to_end.preprocess_until_interrupted() {
+            _ => match preprocess_until_interrupted(slice_to_end) {
                 "var" => (Token::Var, 3),
                 "func" => (Token::Func, 4),
                 "for" => (Token::For, 3),
@@ -226,7 +217,7 @@ impl Token {
             }
         };
 
-        return (found_token, &slice_to_end[length..].trim_start_comments());
+        return (found_token, trim_start_comments(&slice_to_end[length..]));
     }
 
     pub fn full_scan(input: &str) -> Vec<Self> {

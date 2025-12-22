@@ -2,7 +2,7 @@ trait TokenHelper {
     fn trim_start_comments(self) -> Self;
     fn tokenize_string(self) -> (Token, usize);
     fn tokenize_number_or_float(self) -> (Token, usize);
-    fn preprocess_until_whitespace_or_semicolon(self) -> Self;
+    fn preprocess_until_interrupted(self) -> Self;
 }
 
 impl TokenHelper for &str {
@@ -31,7 +31,7 @@ impl TokenHelper for &str {
 
     /// Helper function to tokenize numbers or floats, returning appropriate token type
     fn tokenize_number_or_float(self) -> (Token, usize) {
-        let full_literal = self.preprocess_until_whitespace_or_semicolon();
+        let full_literal = self.preprocess_until_interrupted();
 
         match full_literal.parse::<i32>() {
             Ok(val) => return (Token::Number(val), full_literal.len()),
@@ -44,12 +44,13 @@ impl TokenHelper for &str {
         }
     }
 
-    /// Helper function to preprocess (not tokenize) whitespace or semicolon-separated info
-    fn preprocess_until_whitespace_or_semicolon(self) -> Self {
-        let closing_index = match self.find(|c: char| c.is_whitespace() || c == ';') {
-            Some(val) => val,
-            None => self.len()
-        };
+    /// Helper function to preprocess (not tokenize) whitespace, semicolon or comment-separated info
+    fn preprocess_until_interrupted(self) -> Self {
+        let next_whitespace = self.find(char::is_whitespace).unwrap_or(self.len());
+        let next_comment = self.find("//").unwrap_or(self.len());
+        let next_semicolon = self.find(";").unwrap_or(self.len());
+
+        let closing_index = std::cmp::min(next_whitespace, std::cmp::min(next_comment, next_semicolon));
 
         return &self[0..closing_index];
     }
@@ -210,7 +211,7 @@ impl Token {
             '0' ..= '9' => slice_to_end.tokenize_number_or_float(),
 
             // For other keywords (and true and false), instead go until next whitespace and match
-            _ => match slice_to_end.preprocess_until_whitespace_or_semicolon() {
+            _ => match slice_to_end.preprocess_until_interrupted() {
                 "var" => (Token::Var, 3),
                 "func" => (Token::Func, 4),
                 "for" => (Token::For, 3),

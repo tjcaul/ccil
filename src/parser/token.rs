@@ -1,3 +1,5 @@
+use ordered_float::OrderedFloat;
+
 /// Helper function to remove comments along with whitespace
 fn trim_start_comments(remaining_block: &str) -> &str {
     let mut trimming = remaining_block.trim_start();
@@ -31,7 +33,7 @@ fn tokenize_number_or_float(remaining_block: &str) -> (Token, usize) {
     };
 
     match full_literal.parse::<f64>() {
-        Ok(val) => return (Token::Float(val), full_literal.len()),
+        Ok(val) => return (Token::Float(OrderedFloat(val)), full_literal.len()),
         Err(_) => panic!("Illegal number detected")
     }
 }
@@ -48,7 +50,7 @@ fn preprocess_until_interrupted(remaining_block: &str) -> &str {
 }
 
 #[allow(unused)]
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub enum Token {
     // Single-char
     LeftParen, RightParen,
@@ -59,7 +61,8 @@ pub enum Token {
     Minus, Plus, Slash, Star,
     Semicolon,
     Equal,
-    SingleAnd, SingleOr,
+    SingleAnd, SingleOr, Tilde, Carat,
+    DoubleLessThan, DoubleGreaterThan,
 
     // Comparison (single or double char)
     DoubleEqual, BangEqual,
@@ -71,7 +74,8 @@ pub enum Token {
 
     // Literal
     // We need 64 bits of float for guaranteed lossless conversion between num and float
-    String(String), Number(i32), Float(f64), Boolean(bool),
+    // We use a wrapper provided by the OrderedFloat crate for better equality checks and hashability
+    String(String), Number(i32), Float(OrderedFloat<f64>), Boolean(bool),
 
     // Keywords
     Var, Func, For, While, Print, Return, If, Null,
@@ -105,7 +109,7 @@ impl Token {
 
     pub fn get_float(self) -> Option<f64> {
         match self {
-            Token::Float(f) => Some(f),
+            Token::Float(f) => Some(*f),
             _ => None
         }
     }
@@ -149,6 +153,8 @@ impl Token {
             '/' => (Token::Slash, 1),
             '*' => (Token::Star, 1),
             ';' => (Token::Semicolon, 1),
+            '~' => (Token::Tilde, 1),
+            '^' => (Token::Carat, 1),
 
             // These leading tokens could vary in meaning based on second token.
             '=' => {
@@ -168,6 +174,8 @@ impl Token {
             '<' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
                     (Token::GreaterThanEqual, 2)
+                } else if slice_to_end.len() > 1 && &slice_to_end[1..2] == "<" {
+                    (Token::DoubleGreaterThan, 2)
                 } else {
                     (Token::GreaterThan, 1)
                 }
@@ -175,6 +183,8 @@ impl Token {
             '>' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
                     (Token::LessThanEqual, 2)
+                } else if slice_to_end.len() > 1 && &slice_to_end[1..2] == ">" {
+                    (Token::DoubleLessThan, 2)
                 } else {
                     (Token::LessThan, 1)
                 }
@@ -228,6 +238,7 @@ impl Token {
             retval.push(next_token);
             remaining = unused_slice;
         }
+        retval.reverse(); // lets us use it as a stack
         return retval;
     }
 }

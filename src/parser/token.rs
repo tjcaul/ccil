@@ -1,7 +1,10 @@
+use std::cmp::min;
+
 use ordered_float::OrderedFloat;
 
 /// Helper function to remove comments along with whitespace
 fn trim_start_comments(remaining_block: &str) -> &str {
+    // TODO: do not trim newline so we have line counting
     let mut trimming = remaining_block.trim_start();
     while trimming.len() > 1 && &trimming[0..2] == "//" {
         // get rid of comments, up till next newline
@@ -44,7 +47,7 @@ fn preprocess_until_interrupted(remaining_block: &str) -> &str {
     let next_comment = remaining_block.find("//").unwrap_or(remaining_block.len());
     let next_semicolon = remaining_block.find(";").unwrap_or(remaining_block.len());
 
-    let closing_index = std::cmp::min(next_whitespace, std::cmp::min(next_comment, next_semicolon));
+    let closing_index = min(next_whitespace, min(next_comment, next_semicolon));
 
     return &remaining_block[0..closing_index];
 }
@@ -81,7 +84,7 @@ pub enum Token {
     Var, Func, For, While, Print, Return, If, Null,
 
     // Misc
-    VarName(String), EOF
+    VarName(String), NewLine, EOF
 }
 
 #[allow(unused)]
@@ -155,6 +158,7 @@ impl Token {
             ';' => (Token::Semicolon, 1),
             '~' => (Token::Tilde, 1),
             '^' => (Token::Carat, 1),
+            '\n' => (Token::NewLine, 1),
 
             // These leading tokens could vary in meaning based on second token.
             '=' => {

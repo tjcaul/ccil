@@ -6,7 +6,7 @@ use ordered_float::OrderedFloat;
 fn trim_start_comments(remaining_block: &str) -> &str {
     let non_newline_whitespace = |c: char| c.is_whitespace() && c != '\n';
     let mut trimming = remaining_block.trim_matches(non_newline_whitespace);
-    if trimming.len() > 1 && trimming.starts_with("//") {
+    if trimming.starts_with("//") {
         // get rid of comments, up till next newline
         trimming = &trimming[trimming.find('\n').unwrap_or(trimming.len())..];
     }

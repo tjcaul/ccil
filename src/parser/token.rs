@@ -4,13 +4,11 @@ use ordered_float::OrderedFloat;
 
 /// Helper function to remove comments along with whitespace
 fn trim_start_comments(remaining_block: &str) -> &str {
-    // TODO: do not trim newline so we have line counting
-    let mut trimming = remaining_block.trim_start();
-    while trimming.len() > 1 && &trimming[0..2] == "//" {
+    let non_newline_whitespace = |c: char| c.is_whitespace() && c != '\n';
+    let mut trimming = remaining_block.trim_matches(non_newline_whitespace);
+    if trimming.len() > 1 && &trimming[0..2] == "//" {
         // get rid of comments, up till next newline
-        trimming = &trimming[trimming.find("\n").unwrap_or(trimming.len())..];
-        // get rid of whitespace (incl the newline)
-        trimming = trimming.trim_start();
+        trimming = &trimming[trimming.find('\n').unwrap_or(trimming.len())..];
     }
     return trimming;
 }

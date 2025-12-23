@@ -55,4 +55,8 @@ impl Parser {
     fn parse_expect(mut self, expected: Token) -> Option<Self> {
         todo!()
     }
+
+    fn emit_bytecode(self) -> Vec<u8> {
+        todo!()
+    }
 }

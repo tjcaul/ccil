@@ -2,10 +2,8 @@ use std::{fs, process::exit};
 
 use clap::Parser;
 
-use crate::{constants::{BYTECODE_HEADER_SIZE, CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1}, vm::{chunk::Chunk, opcode::OpCodeLookup}};
+use ccil::{constants::{BYTECODE_HEADER_SIZE, CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1}, vm::{chunk::Chunk, opcode::OpCodeLookup}};
 
-mod vm;
-mod constants;
 
 /// ccil bytecode disassembler
 #[derive(Parser, Debug)]

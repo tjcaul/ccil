@@ -15,8 +15,8 @@ path = "src/main.rs"
 
 [[bin]]
 name = "ccila"
-path = "src/assembler.rs"
+path = "src/bin/assembler.rs"
 
 [[bin]]
 name = "ccild"
-path = "src/disassembler.rs"
+path = "src/bin/disassembler.rs"

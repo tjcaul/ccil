@@ -2,12 +2,8 @@ use std::{fs, process::exit};
 
 use clap::Parser;
 
-use crate::constants::{BYTECODE_HEADER_SIZE, CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1};
-use crate::vm::{chunk::Chunk, opcode::OpCode, opcode::OpCodeLookup};
-use crate::vm::stack::StackPointer;
-
-mod vm;
-mod constants;
+use ccil::constants::{BYTECODE_HEADER_SIZE, CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1};
+use ccil::vm::{chunk::Chunk, opcode::OpCode, opcode::OpCodeLookup, stack::StackPointer};
 
 /// Quick and dirty assembler for ccil bytecode, supports both writing to file and immediate execution
 #[derive(Parser, Debug)]

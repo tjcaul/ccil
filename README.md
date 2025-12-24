@@ -2,6 +2,10 @@
 
 ## Running
 
+All tools (`ccil`, `ccila`, `ccilb`) can be run with the
+`--help` option for a full list of options.
+Below is an incomplete list of useful commands.
+
 Assemble and run CCIL assembly file:
 ```
 cargo run --bin ccila bytecode_assembly/test.ccila
@@ -13,6 +17,11 @@ cargo run --bin ccila bytecode_assembly/test.ccila -o bytecode/test.ccilb
 ```
 
 Disassemble CCIL binary to assembly:
+```
+cargo run --bin ccild bytecode/test.ccilb
+```
+
+Disassemble CCIL binary to assembly file:
 ```
 cargo run --bin ccild bytecode/test.ccilb -o test_disasm.ccila
 ```

@@ -48,7 +48,7 @@ fn main() {
         let opcode = match opcode_lookup.from_byte(opcode_byte) {
             Some(val) => val,
             None => {
-                eprintln!("Error at offset {}: {} does not match with a valid opcode", offset, opcode_byte);
+                eprintln!("Error at offset {}: {:02x} does not match with a valid opcode", offset, opcode_byte);
                 exit(1);
             }
         };

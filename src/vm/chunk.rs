@@ -62,7 +62,7 @@ impl Chunk for Vec<u8> {
             print!("{} ", offset);
             let chunk_code = match lookup.from_byte(self[offset]) {
                 Some(opcode) => opcode,
-                None => panic!("Unknown opcode with value {:x}", self[offset])
+                None => panic!("Unknown opcode with value {:02x}", self[offset])
             };
             
             let mut args = Vec::<StackPointer>::new();

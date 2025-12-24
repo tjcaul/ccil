@@ -21,15 +21,39 @@ pub struct OpCodeLookup<'a> {
 impl<'a> OpCodeLookup<'a> {
     pub fn new() -> Self {
         // Instantiate lookup tables
-        let mut symbol_lookup = BTreeMap::new();
-        let mut byte_lookup = Vec::new();
+        let mut symbol_lookup = BTreeMap::<&str, &OpCode>::new();
+        let mut byte_lookup = Vec::<Option<&OpCode>>::new();
         byte_lookup.resize(u8::MAX as usize - u8::MIN as usize + 1, None);
 
         // Add opcodes to tables
         for i in 0..OPCODES.len() {
             let opcode = &OPCODES[i];
-            byte_lookup[opcode.byte as usize] = Some(opcode);
-            symbol_lookup.insert(opcode.symbol, opcode);
+            match &byte_lookup[opcode.byte as usize] {
+                &Some(opcode2) => {
+                    panic!(
+                        "Opcodes {} and {} both have byte {:02x}",
+                        opcode.symbol,
+                        opcode2.symbol,
+                        opcode.byte
+                    );
+                },
+                &None => {
+                    byte_lookup[opcode.byte as usize] = Some(opcode);
+                }
+            }
+            match symbol_lookup.get(opcode.symbol) {
+                Some(&opcode2) => {
+                    panic!(
+                        "Opcodes with bytes {:02x} and {:02x} both have symbol {}",
+                        opcode.byte,
+                        opcode2.byte,
+                        opcode.symbol
+                    );
+                }
+                None => {
+                    symbol_lookup.insert(opcode.symbol, opcode);
+                }
+            }
         }
 
         return Self {symbol_lookup, byte_lookup};
@@ -97,31 +121,31 @@ const OPCODES: &[OpCode] = &[
         handler: handle_op::handle_bnot, num_params: 0
     },
     OpCode {
-        symbol: "BOR", byte: 0x20,
+        symbol: "BOR", byte: 0x21,
         handler: handle_op::handle_bor, num_params: 0
     },
     OpCode {
-        symbol: "BAND", byte: 0x20,
+        symbol: "BAND", byte: 0x22,
         handler: handle_op::handle_band, num_params: 0
     },
     OpCode {
-        symbol: "BXOR", byte: 0x20,
+        symbol: "BXOR", byte: 0x23,
         handler: handle_op::handle_bxor, num_params: 0
     },
     OpCode {
-        symbol: "NOT", byte: 0x20,
+        symbol: "NOT", byte: 0x24,
         handler: handle_op::handle_not, num_params: 0
     },
     OpCode {
-        symbol: "OR", byte: 0x20,
+        symbol: "OR", byte: 0x25,
         handler: handle_op::handle_or, num_params: 0
     },
     OpCode {
-        symbol: "AND", byte: 0x20,
+        symbol: "AND", byte: 0x26,
         handler: handle_op::handle_and, num_params: 0
     },
     OpCode {
-        symbol: "XOR", byte: 0x20,
+        symbol: "XOR", byte: 0x27,
         handler: handle_op::handle_xor, num_params: 0
     },
 ];

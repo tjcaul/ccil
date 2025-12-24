@@ -2,6 +2,8 @@ use std::collections::BTreeMap;
 use crate::vm::handle_op;
 use crate::vm::handle_op::OpcodeHandler;
 
+pub type Argument = u32;
+
 #[allow(dead_code)]
 pub struct OpCode<'a> {
     pub symbol: &'a str,
@@ -51,15 +53,19 @@ const OPCODES: &[OpCode] = &[
         handler: handle_op::handle_nop, num_params: 0
     },
     OpCode {
-        symbol: "CONSTANT", byte: 0x03,
+        symbol: "CONSTANT", byte: 0x01,
         handler: handle_op::handle_constant, num_params: 1
     },
     OpCode {
-        symbol: "RETURN", byte: 0x01,
-        handler: handle_op::handle_return, num_params: 1
+        symbol: "PUSH", byte: 0x02,
+        handler: handle_op::handle_push, num_params: 1
     },
     OpCode {
-        symbol: "ADD", byte: 0x02,
-        handler: handle_op::handle_add, num_params: 2
+        symbol: "POP", byte: 0x03,
+        handler: handle_op::handle_pop, num_params: 0
+    },
+    OpCode {
+        symbol: "ADD", byte: 0x04,
+        handler: handle_op::handle_add, num_params: 0
     },
 ];

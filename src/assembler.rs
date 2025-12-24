@@ -66,8 +66,8 @@ fn main() {
         };
         
         let num_args = line_opcode.num_params;
-        if num_args + 1 != line_split.len() {
-            eprintln!("Error assembling line {}: expected {} args for opcode {} but got {}", i, num_args, opcode_str, line_split.len());
+        if num_args != line_split.len() - 1 {
+            eprintln!("Error assembling line {}: expected {} args for opcode {} but got {}", i, num_args, opcode_str, line_split.len() - 1);
             exit(1);
         }
 

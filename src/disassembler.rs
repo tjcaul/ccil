@@ -24,11 +24,6 @@ fn main() {
 
     let args = Args::parse();
     
-    if args.output_path.is_empty() {
-        eprintln!("Output file not specified, run --help for more info");
-        exit(1);
-    }
-
     let input_file = match fs::read(args.input_path) {
         Ok(val) => val,
         Err(error) => {
@@ -53,7 +48,7 @@ fn main() {
         let opcode = match opcode_lookup.from_byte(opcode_byte) {
             Some(val) => val,
             None => {
-                eprintln!("Error at offset {}: {} does not match with a valid opcode", offset, opcode_byte);
+                eprintln!("Error at offset {}: {:02x} does not match with a valid opcode", offset, opcode_byte);
                 exit(1);
             }
         };
@@ -70,13 +65,16 @@ fn main() {
         assembly += "\n";
     }
 
-    match fs::write(args.output_path, assembly) {
-        Ok(_) => {},
-        Err(error) => {
-            eprintln!("Failed to write to output file: {}", error);
-            exit(1);
-        }
-    };
-
+    if args.output_path.is_empty() {
+        print!("{}", assembly)
+    } else {
+        match fs::write(args.output_path, assembly) {
+            Ok(_) => {},
+            Err(error) => {
+                eprintln!("Failed to write to output file: {}", error);
+                exit(1);
+            }
+        };
+    }
     exit(0);
 }

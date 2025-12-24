@@ -11,7 +11,7 @@ constant 9
 constant 8
 
 // copy 2-from-top stack item (13) to top of stack
-push 2
-push 3
+copy 2
+copy 3
 add  // 13 + 13
 pop // discard value

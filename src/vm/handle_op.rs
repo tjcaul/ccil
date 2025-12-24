@@ -27,7 +27,16 @@ pub fn handle_constant(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<S
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_push(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_pop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let val = stack.pop().expect("Popped from empty stack");
+    println!("POP -> {}", val);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_copy(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let address = args[0] as StackPointer;
@@ -38,11 +47,25 @@ pub fn handle_push(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_pop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_swap(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack");
+    let a = stack.pop().expect("Popped from empty stack");
+    stack.push(b);
+    stack.push(a);
+    println!("SWAP {} {} -> {} {}", a, b, b, a);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_neg(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let val = stack.pop().expect("Popped from empty stack");
-    println!("POP -> {}", val);
+    let negative = -val;
+    stack.push(negative);
+    println!("NEG {} -> {}", val, negative);
 
     return offset + compute_opcode_size(args.len());
 }
@@ -56,5 +79,147 @@ pub fn handle_add(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     stack.push(sum);
     println!("ADD {} {} -> {}", a, b, sum);
 
-    return offset + 1 + args.len();
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_sub(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack");
+    let a = stack.pop().expect("Popped from empty stack");
+    let difference = a - b;
+    stack.push(difference);
+    println!("SUB {} {} -> {}", a, b, difference);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_mul(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack");
+    let a = stack.pop().expect("Popped from empty stack");
+    let product = a - b;
+    stack.push(product);
+    println!("MUL {} {} -> {}", a, b, product);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_div(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let divisor = stack.pop().expect("Popped from empty stack");
+    let dividend = stack.pop().expect("Popped from empty stack");
+    let quotient = dividend / divisor;
+    stack.push(quotient);
+    println!("DIV {} {} -> {}", dividend, divisor, quotient);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_mod(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let divisor = stack.pop().expect("Popped from empty stack");
+    let dividend = stack.pop().expect("Popped from empty stack");
+    let remainder = dividend % divisor;
+    stack.push(remainder);
+    println!("MOD {} {} -> {}", dividend, divisor, remainder);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_bnot(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let val = stack.pop().expect("Popped from empty stack");
+    let bitwise_not = !val;
+    stack.push(bitwise_not);
+    println!("BNOT {} -> {}", val, bitwise_not);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_bor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack");
+    let a = stack.pop().expect("Popped from empty stack");
+    let bitwise_or = a | b;
+    stack.push(bitwise_or);
+    println!("BOR {} {} -> {}", a, b, bitwise_or);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_band(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack");
+    let a = stack.pop().expect("Popped from empty stack");
+    let bitwise_and = a & b;
+    stack.push(bitwise_and);
+    println!("BOR {} {} -> {}", a, b, bitwise_and);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_bxor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack");
+    let a = stack.pop().expect("Popped from empty stack");
+    let bitwise_xor = a ^ b;
+    stack.push(bitwise_xor);
+    println!("BXOR {} {} -> {}", a, b, bitwise_xor);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_not(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let val = stack.pop().expect("Popped from empty stack") != 0;
+    let boolean_not = !val;
+    stack.push(boolean_not as StackItem);
+    println!("NOT {} -> {}", val, boolean_not);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_or(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack") != 0;
+    let a = stack.pop().expect("Popped from empty stack") != 0;
+    let boolean_or = a || b;
+    stack.push(boolean_or as StackItem);
+    println!("OR {} {} -> {}", a, b, boolean_or);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_and(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack") != 0;
+    let a = stack.pop().expect("Popped from empty stack") != 0;
+    let boolean_and = a && b;
+    stack.push(boolean_and as StackItem);
+    println!("AND {} {} -> {}", a, b, boolean_and);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_xor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let b = stack.pop().expect("Popped from empty stack") != 0;
+    let a = stack.pop().expect("Popped from empty stack") != 0;
+    let boolean_xor = (a && !b) || (!a && b);
+    stack.push(boolean_xor as StackItem);
+    println!("XOR {} {} -> {}", a, b, boolean_xor);
+
+    return offset + compute_opcode_size(args.len());
 }

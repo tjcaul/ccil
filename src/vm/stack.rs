@@ -1,5 +1,5 @@
-pub type StackPointer = u32;
-pub type StackItem = u8;
+pub type StackPointer = i32;
+pub type StackItem = i8;
 
 pub trait Stack {
     fn get(&self, offset: StackPointer) -> StackItem;

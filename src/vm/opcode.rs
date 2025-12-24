@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use crate::vm::handle_op;
 use crate::vm::handle_op::OpcodeHandler;
 
-pub type Argument = u32;
+pub type Argument = i32;
 
 #[allow(dead_code)]
 pub struct OpCode<'a> {
@@ -57,15 +57,71 @@ const OPCODES: &[OpCode] = &[
         handler: handle_op::handle_constant, num_params: 1
     },
     OpCode {
-        symbol: "PUSH", byte: 0x02,
-        handler: handle_op::handle_push, num_params: 1
-    },
-    OpCode {
-        symbol: "POP", byte: 0x03,
+        symbol: "POP", byte: 0x02,
         handler: handle_op::handle_pop, num_params: 0
     },
     OpCode {
-        symbol: "ADD", byte: 0x04,
+        symbol: "COPY", byte: 0x03,
+        handler: handle_op::handle_copy, num_params: 1
+    },
+    OpCode {
+        symbol: "SWAP", byte: 0x04,
+        handler: handle_op::handle_swap, num_params: 0
+    },
+    OpCode {
+        symbol: "NEG", byte: 0x10,
+        handler: handle_op::handle_neg, num_params: 0
+    },
+    OpCode {
+        symbol: "ADD", byte: 0x11,
         handler: handle_op::handle_add, num_params: 0
+    },
+    OpCode {
+        symbol: "SUB", byte: 0x12,
+        handler: handle_op::handle_sub, num_params: 0
+    },
+    OpCode {
+        symbol: "MUL", byte: 0x13,
+        handler: handle_op::handle_mul, num_params: 0
+    },
+    OpCode {
+        symbol: "DIV", byte: 0x14,
+        handler: handle_op::handle_div, num_params: 0
+    },
+    OpCode {
+        symbol: "MOD", byte: 0x15,
+        handler: handle_op::handle_mod, num_params: 0
+    },
+    OpCode {
+        symbol: "BNOT", byte: 0x20,
+        handler: handle_op::handle_bnot, num_params: 0
+    },
+    OpCode {
+        symbol: "BOR", byte: 0x20,
+        handler: handle_op::handle_bor, num_params: 0
+    },
+    OpCode {
+        symbol: "BAND", byte: 0x20,
+        handler: handle_op::handle_band, num_params: 0
+    },
+    OpCode {
+        symbol: "BXOR", byte: 0x20,
+        handler: handle_op::handle_bxor, num_params: 0
+    },
+    OpCode {
+        symbol: "NOT", byte: 0x20,
+        handler: handle_op::handle_not, num_params: 0
+    },
+    OpCode {
+        symbol: "OR", byte: 0x20,
+        handler: handle_op::handle_or, num_params: 0
+    },
+    OpCode {
+        symbol: "AND", byte: 0x20,
+        handler: handle_op::handle_and, num_params: 0
+    },
+    OpCode {
+        symbol: "XOR", byte: 0x20,
+        handler: handle_op::handle_xor, num_params: 0
     },
 ];

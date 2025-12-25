@@ -35,6 +35,7 @@ impl Parser {
         return Expr::Grouping(Box::new(expr));
     }
 
+    /// Parse a literal expression (i.e. a literal value)
     pub fn literal(&mut self, token: &Token) -> Expr {
         return Expr::Literal(token.clone());
     }

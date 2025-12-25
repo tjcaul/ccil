@@ -39,6 +39,14 @@ fn tokenize_number_or_float(remaining_block: &str) -> (Token, usize) {
     }
 }
 
+/// Helper function to identify (but not tokenize) variable names or keywords
+/// as each character must be either ASCII alphanumeric or the underscore
+fn preprocess_keyword_or_varname(remaining_block: &str) -> &str {
+    let closing_index = remaining_block.find(|c: char| !c.is_ascii_alphanumeric() && c != '_').unwrap_or(remaining_block.len());
+
+    return &remaining_block[0..closing_index];
+}
+
 /// Helper function to preprocess (not tokenize) whitespace, semicolon or comment-separated info
 fn preprocess_until_interrupted(remaining_block: &str) -> &str {
     let next_whitespace = remaining_block.find(char::is_whitespace).unwrap_or(remaining_block.len());
@@ -214,7 +222,7 @@ impl Token {
             '0' ..= '9' => tokenize_number_or_float(slice_to_end),
 
             // For other keywords (and true and false), instead go until next whitespace and match
-            _ => match preprocess_until_interrupted(slice_to_end) {
+            _ => match preprocess_keyword_or_varname(slice_to_end) {
                 "var" => (Token::Var, 3),
                 "func" => (Token::Func, 4),
                 "for" => (Token::For, 3),

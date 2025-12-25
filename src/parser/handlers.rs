@@ -8,7 +8,7 @@ impl Parser {
     pub fn grouping(&mut self) -> Expr {
         let expr;
         expr = self.expression();
-        self.parse_expect(Token::RightParen);
+        self.consume_expected(Token::RightParen);
         return Expr::Grouping(Box::new(expr.clone()));
     }
 }

@@ -32,10 +32,14 @@ impl Parser {
     }
 
     fn parse_step(&mut self) {
-        let current_token = self.tokens_to_process.pop().unwrap();
-        if current_token == Token::EOF {
-            return;
-        }
+        let current_token = match self.tokens_to_process.pop() {
+            Some(val) => match val {
+                Token::EOF => { return; },
+                _ => val
+            }
+            None => { return; }
+        };
+        // no need to unwrap now
         let previous_token = self.tokens_processed.last();
 
         let parse_rule = ParseRule::get_parse_rule(&current_token);
@@ -50,8 +54,15 @@ impl Parser {
         self.tokens_processed.push(current_token);
     }
 
-    fn parse_expect(&mut self, expected: Token) -> Option<Self> {
-        todo!()
+    fn consume_and_return(&mut self) -> Token {
+        self.tokens_to_process.pop().unwrap_or(Token::EOF)
+    }
+
+    fn consume_expected(&mut self, expected: Token) {
+        let token = self.consume_and_return();
+        if token != expected {
+            self.raise_parsing_error(format!("Expected token {:?}, got token {:?}", expected, token))
+        }
     }
 
     fn emit_bytecode(self) -> Vec<u8> {

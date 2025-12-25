@@ -58,10 +58,13 @@ impl Parser {
         self.tokens_to_process.pop().unwrap_or(Token::EOF)
     }
 
+    /// Consumes the token and errors out if encountering another.
+    /// Ignores fields. Shouldn't really be used with any fields
+    /// but just set to some dummy value for expected.
     fn consume_expected(&mut self, expected: Token) {
         let token = self.consume_and_return();
-        if token != expected {
-            self.raise_parsing_error(format!("Expected token {:?}, got token {:?}", expected, token))
+        if std::mem::discriminant(&token) != std::mem::discriminant(&expected) {
+            self.raise_parsing_error(format!("Expected token {:?}, got token {:?}", expected, token));
         }
     }
 

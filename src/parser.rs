@@ -31,16 +31,15 @@ impl Parser {
         std::process::exit(1);
     }
 
+    /// Steps forward a token in the parser and adds any resultant expressions.
+    /// If EOF is reached, return EOF and do nothing else.
     fn parse_step(&mut self) {
-        let current_token = match self.tokens_to_process.pop() {
-            Some(val) => match val {
-                Token::EOF => { return; },
-                _ => val
-            }
-            None => { return; }
-        };
+        let current_token = self.consume_and_return();
+        if current_token == Token::EOF {
+            return;
+        }
         // no need to unwrap now
-        let previous_token = self.tokens_processed.last();
+        // let previous_expression = self.expressions.last();
 
         let parse_rule = ParseRule::get_parse_rule(&current_token);
         let handler = match parse_rule.prefix {
@@ -54,6 +53,7 @@ impl Parser {
         self.tokens_processed.push(current_token);
     }
 
+    /// Pops the top token from the stack and returns it.
     fn consume_and_return(&mut self) -> Token {
         self.tokens_to_process.pop().unwrap_or(Token::EOF)
     }
@@ -68,6 +68,7 @@ impl Parser {
         }
     }
 
+    /// Emits bytecode of completed expressions into a chunk.
     fn emit_bytecode(self) -> Vec<u8> {
         todo!()
     }

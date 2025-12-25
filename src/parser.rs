@@ -42,12 +42,12 @@ impl Parser {
         // let previous_expression = self.expressions.last();
 
         let parse_rule = ParseRule::get_parse_rule(&current_token);
-        let handler = match parse_rule.prefix {
+        let handler = match parse_rule.handler {
             Some(val) => val,
             None => self.raise_parsing_error(format!("Unexpected token {:?}", current_token))
         };
 
-        let expr = handler(self);
+        let expr = handler(self, &current_token);
 
         self.expressions.push(expr);
         self.tokens_processed.push(current_token);

@@ -1,7 +1,7 @@
 use crate::parser::{Parser, expr::Expr, token::Token};
 
 #[allow(unused)]
-type ParseHandler = fn(&mut Parser) -> Expr;
+type ParseHandler = fn(&mut Parser, token: &Token) -> Expr;
 
 /// Defines an order in which tokens should be consumed.
 /// Greater always implies greater precedence (i.e. should be consumed first).
@@ -29,8 +29,7 @@ enum Precedence {
 #[allow(unused)]
 #[derive(Debug, Clone)]
 pub struct ParseRule {
-    pub prefix: Option<ParseHandler>,
-    pub infix: Option<ParseHandler>,
+    pub handler: Option<ParseHandler>,
     precedence: Precedence
 }
 
@@ -38,7 +37,7 @@ pub struct ParseRule {
 impl ParseRule {
     pub fn get_parse_rule(token: &Token) -> Self {
         match token {
-            Token::LeftParen => Self {prefix: Some(Parser::grouping), infix: None, precedence: Precedence::None},
+            Token::LeftParen => Self {handler: Some(Parser::grouping), precedence: Precedence::None},
             _ => todo!()
         }
     }

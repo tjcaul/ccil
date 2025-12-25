@@ -1,7 +1,7 @@
 use crate::parser::{Parser, expr::Expr, token::Token};
 
 #[allow(unused)]
-type ParseHandler = fn(Parser) -> (Expr, Parser);
+type ParseHandler = fn(&mut Parser) -> Expr;
 
 /// Defines an order in which tokens should be consumed.
 /// Greater always implies greater precedence (i.e. should be consumed first).

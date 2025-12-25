@@ -1,14 +1,14 @@
 use crate::parser::{Parser, expr::Expr, token::Token};
 
 impl Parser {
-    fn expression(self) -> (Expr, Self) {
+    fn expression(&mut self) -> Expr {
         todo!()
     }
 
-    pub fn grouping(mut self) -> (Expr, Self) {
+    pub fn grouping(&mut self) -> Expr {
         let expr;
-        (expr, self) = self.expression();
-        self = self.parse_expect(Token::RightParen).unwrap();
-        return (Expr::Grouping(Box::new(expr.clone())), self);
+        expr = self.expression();
+        self.parse_expect(Token::RightParen);
+        return Expr::Grouping(Box::new(expr.clone()));
     }
 }

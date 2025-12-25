@@ -25,16 +25,16 @@ impl Parser {
     }
 
     /// Prints parsing error message and exits with code 1. Function does not return
-    fn raise_parsing_error(self, error_message: String) -> ! {
+    fn raise_parsing_error(&self, error_message: String) -> ! {
         // Todo in future: create specific error message struct/enum to hold more complex info?
         eprintln!("Error at line {}: \n\n {}", self.current_line, error_message);
         std::process::exit(1);
     }
 
-    fn parse_step(mut self) -> Option<Self> {
+    fn parse_step(&mut self) {
         let current_token = self.tokens_to_process.pop().unwrap();
         if current_token == Token::EOF {
-            return None;
+            return;
         }
         let previous_token = self.tokens_processed.last();
 
@@ -44,15 +44,13 @@ impl Parser {
             None => self.raise_parsing_error(format!("Unexpected token {:?}", current_token))
         };
 
-        let expr;
-        (expr, self) = handler(self);
+        let expr = handler(self);
 
         self.expressions.push(expr);
         self.tokens_processed.push(current_token);
-        return Some(self);
     }
 
-    fn parse_expect(mut self, expected: Token) -> Option<Self> {
+    fn parse_expect(&mut self, expected: Token) -> Option<Self> {
         todo!()
     }
 

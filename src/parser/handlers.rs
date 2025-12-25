@@ -10,8 +10,11 @@ impl Parser {
 
     /// Parse a grouping expression (i.e. items grouped together with parentheses)
     pub fn grouping(&mut self) -> Expr {
-        let expr;
-        expr = self.expression();
+        if self.tokens_to_process.len() > 0 && self.tokens_to_process[0] == Token::RightParen {
+            // empty parentheses
+            return Expr::Grouping(Box::new(Expr::Empty));
+        }
+        let expr = self.expression();
         self.consume_expected(Token::RightParen);
         return Expr::Grouping(Box::new(expr));
     }

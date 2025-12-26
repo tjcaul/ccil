@@ -2,7 +2,6 @@ use crate::parser::{expr::Expr, rules::ParseRule, token::Token};
 pub mod expr;
 pub mod token;
 pub mod rules;
-pub mod handlers;
 
 #[allow(unused)]
 #[derive(Debug)]

@@ -8,17 +8,17 @@ pub mod rules;
 pub struct Parser {
     current_line: usize,
     tokens_to_process: Vec<Token>,
-    tokens_processed: Vec<Token>,
-    expressions: Vec<Expr>
+    floating_expressions: Vec<Expr>,
+    pub expressions: Vec<Expr>
 }
 
 #[allow(unused)]
 impl Parser {
     pub fn new(tokens_to_process: Vec<Token>) -> Self {
         Self { 
-            current_line: 0,
+            current_line: 1,
             tokens_to_process,
-            tokens_processed: Vec::<Token>::new(),
+            floating_expressions: Vec::<Expr>::new(),
             expressions: Vec::<Expr>::new()
         }
     }
@@ -26,30 +26,39 @@ impl Parser {
     /// Prints parsing error message and exits with code 1. Function does not return
     fn raise_parsing_error(&self, error_message: String) -> ! {
         // Todo in future: create specific error message struct/enum to hold more complex info?
-        eprintln!("Error at line {}: \n\n {}", self.current_line, error_message);
+        eprintln!("Error on line {}:\n\n{}", self.current_line, error_message);
         std::process::exit(1);
     }
 
-    /// Steps forward a token in the parser and adds any resultant expressions.
-    /// If EOF is reached, return EOF and do nothing else.
-    fn parse_step(&mut self) {
+    /// Steps forward a token in the parser and adds an expression if necessary.
+    /// If EOF is reached, return do nothing.
+    pub fn parse_step(&mut self) {
         let current_token = self.consume_and_return();
+        // TODO: maybe just consider moving this return to later when we pattern match for none?
         if current_token == Token::EOF {
             return;
         }
-        // no need to unwrap now
-        // let previous_expression = self.expressions.last();
+        if current_token == Token::Semicolon {
+            self.expressions.push(match self.floating_expressions.len() {
+                0 => Expr::Empty,
+                1 => self.floating_expressions.pop().unwrap(),
+                _ => self.raise_parsing_error("Illegal expression".to_owned())
+            });
+            return;
+        }
+        if current_token == Token::NewLine {
+            self.current_line += 1;
+            return;
+        }
 
-        let parse_rule = ParseRule::get_parse_rule(&current_token);
-        let handler = match parse_rule.handler {
+        let parse_rule = match ParseRule::get_parse_rule(&current_token) {
             Some(val) => val,
             None => self.raise_parsing_error(format!("Unexpected token {:?}", current_token))
         };
 
-        let expr = handler(self, &current_token);
+        let expr = (parse_rule.handler)(self, &current_token);
 
-        self.expressions.push(expr);
-        self.tokens_processed.push(current_token);
+        self.floating_expressions.push(expr);
     }
 
     /// Pops the top token from the stack and returns it.
@@ -64,6 +73,12 @@ impl Parser {
         let token = self.consume_and_return();
         if std::mem::discriminant(&token) != std::mem::discriminant(&expected) {
             self.raise_parsing_error(format!("Expected token {:?}, got token {:?}", expected, token));
+        }
+    }
+
+    pub fn full_parse(&mut self) {
+        while !self.tokens_to_process.is_empty() {
+            self.parse_step();
         }
     }
 

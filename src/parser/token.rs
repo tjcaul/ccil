@@ -1,4 +1,4 @@
-use std::cmp::min;
+use std::{cmp::min};
 
 use ordered_float::OrderedFloat;
 
@@ -26,7 +26,7 @@ fn tokenize_string(remaining_block: &str) -> (Token, usize) {
 
 /// Helper function to tokenize numbers or floats, returning appropriate token type
 fn tokenize_number_or_float(remaining_block: &str) -> (Token, usize) {
-    let full_literal = preprocess_until_interrupted(remaining_block);
+    let full_literal = preprocess_number_or_float(remaining_block);
 
     match full_literal.parse::<i32>() {
         Ok(val) => return (Token::Number(val), full_literal.len()),
@@ -48,12 +48,14 @@ fn preprocess_keyword_or_varname(remaining_block: &str) -> &str {
 }
 
 /// Helper function to preprocess (not tokenize) whitespace, semicolon or comment-separated info
-fn preprocess_until_interrupted(remaining_block: &str) -> &str {
-    let next_whitespace = remaining_block.find(char::is_whitespace).unwrap_or(remaining_block.len());
+fn preprocess_number_or_float(remaining_block: &str) -> &str {
+    // use this hacky solution until they finally stabilize the pattern api
+    let min_char_index = remaining_block.find(|c: char|
+        !c.is_ascii_digit() && c != '.'
+    ).unwrap_or(remaining_block.len());
     let next_comment = remaining_block.find("//").unwrap_or(remaining_block.len());
-    let next_semicolon = remaining_block.find(";").unwrap_or(remaining_block.len());
 
-    let closing_index = min(next_whitespace, min(next_comment, next_semicolon));
+    let closing_index = min(min_char_index, next_comment);
 
     return &remaining_block[0..closing_index];
 }
@@ -69,7 +71,7 @@ pub enum Token {
     Dot,
     Minus, Plus, Slash, Star,
     Semicolon,
-    Equal,
+    Equals,
     SingleAnd, SingleOr, Tilde, Carat,
     DoubleLessThan, DoubleGreaterThan,
 
@@ -90,7 +92,9 @@ pub enum Token {
     Var, Func, For, While, Print, Return, If, Null,
 
     // Misc
-    VarName(String), NewLine, EOF
+    VarName(String), NewLine, EOF,
+
+    Dummy // dummy value used for satisfying some fields
 }
 
 #[allow(unused)]
@@ -142,75 +146,76 @@ impl Token {
     /// Input should have leading whitespace removed,
     /// and output is guaranteed to have leading whitespace removed.
     fn scan_token(slice_to_end: &str) -> (Self, &str) {
+        use Token::*;
         if slice_to_end.is_empty() {
-            return (Token::EOF, "");
+            return (EOF, "");
         }
 
         let (found_token, length) = match &slice_to_end.chars().next().unwrap() {
             // Unambiguous single-chars are the easiest; we simply match directly.
-            '(' => (Token::LeftParen, 1),
-            ')' => (Token::RightParen, 1),
-            '{' => (Token::LeftCurly, 1),
-            '}' => (Token::RightCurly, 1),
-            '[' => (Token::LeftSquare, 1),
-            ']' => (Token::RightSquare, 1),
-            ',' => (Token::Comma, 1),
-            '.' => (Token::Dot, 1),
-            '-' => (Token::Minus, 1),
-            '+' => (Token::Plus, 1),
+            '(' => (LeftParen, 1),
+            ')' => (RightParen, 1),
+            '{' => (LeftCurly, 1),
+            '}' => (RightCurly, 1),
+            '[' => (LeftSquare, 1),
+            ']' => (RightSquare, 1),
+            ',' => (Comma, 1),
+            '.' => (Dot, 1),
+            '-' => (Minus, 1),
+            '+' => (Plus, 1),
             // Guaranteed to be fine since we treat comments as whitespace
-            '/' => (Token::Slash, 1),
-            '*' => (Token::Star, 1),
-            ';' => (Token::Semicolon, 1),
-            '~' => (Token::Tilde, 1),
-            '^' => (Token::Carat, 1),
-            '\n' => (Token::NewLine, 1),
+            '/' => (Slash, 1),
+            '*' => (Star, 1),
+            ';' => (Semicolon, 1),
+            '~' => (Tilde, 1),
+            '^' => (Carat, 1),
+            '\n' => (NewLine, 1),
 
             // These leading tokens could vary in meaning based on second token.
             '=' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
-                    (Token::DoubleEqual, 2)
+                    (DoubleEqual, 2)
                 } else {
-                    (Token::Equal, 1)
+                    (Equals, 1)
                 }
             }
             '!' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
-                    (Token::BangEqual, 2)
+                    (BangEqual, 2)
                 } else {
-                    (Token::Bang, 1)
+                    (Bang, 1)
                 }
             }
             '<' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
-                    (Token::GreaterThanEqual, 2)
+                    (GreaterThanEqual, 2)
                 } else if slice_to_end.len() > 1 && &slice_to_end[1..2] == "<" {
-                    (Token::DoubleGreaterThan, 2)
+                    (DoubleGreaterThan, 2)
                 } else {
-                    (Token::GreaterThan, 1)
+                    (GreaterThan, 1)
                 }
             }
             '>' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "=" {
-                    (Token::LessThanEqual, 2)
+                    (LessThanEqual, 2)
                 } else if slice_to_end.len() > 1 && &slice_to_end[1..2] == ">" {
-                    (Token::DoubleLessThan, 2)
+                    (DoubleLessThan, 2)
                 } else {
-                    (Token::LessThan, 1)
+                    (LessThan, 1)
                 }
             }
             '&' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "&" {
-                    (Token::And, 2)
+                    (And, 2)
                 } else {
-                    (Token::SingleAnd, 1)
+                    (SingleAnd, 1)
                 }
             }
             '|' => {
                 if slice_to_end.len() > 1 && &slice_to_end[1..2] == "|" {
-                    (Token::Or, 2)
+                    (Or, 2)
                 } else {
-                    (Token::SingleOr, 1)
+                    (SingleOr, 1)
                 }
             }
 
@@ -222,18 +227,22 @@ impl Token {
             '0' ..= '9' => tokenize_number_or_float(slice_to_end),
 
             // For other keywords (and true and false), instead go until next whitespace and match
-            _ => match preprocess_keyword_or_varname(slice_to_end) {
-                "var" => (Token::Var, 3),
-                "func" => (Token::Func, 4),
-                "for" => (Token::For, 3),
-                "while" => (Token::While, 5),
-                "print" => (Token::Print, 5),
-                "return" => (Token::Return, 6),
-                "if" => (Token::If, 2),
-                "true" => (Token::Boolean(true), 4),
-                "false" => (Token::Boolean(false), 5),
-                "null" => (Token::Null, 4),
-                _ => panic!("Unknown keyword found while tokenizing")
+            _ => {
+                let kw = preprocess_keyword_or_varname(slice_to_end);
+                match kw {
+                    "var" => (Var, 3),
+                    "func" => (Func, 4),
+                    "for" => (For, 3),
+                    "while" => (While, 5),
+                    "print" => (Print, 5),
+                    "return" => (Return, 6),
+                    "if" => (If, 2),
+                    "true" => (Boolean(true), 4),
+                    "false" => (Boolean(false), 5),
+                    "null" => (Null, 4),
+                    // if everything else fails we just assume varname
+                    _ => (VarName(kw.to_owned()), kw.len())
+                }
             }
         };
 

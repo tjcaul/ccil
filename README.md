@@ -36,8 +36,8 @@ The number and bounds of arguments depends on the operation.
 For example:
 ```
 nop
-constant 2
-constant 3
+const 2
+const 3
 add
 pop
 ```
@@ -56,7 +56,7 @@ The number and bounds of arguments depends on the operation.
 For example,
 ```
 nop
-constant 2
+const 2
 pop
 ```
 is encoded as
@@ -72,7 +72,7 @@ CC17                         -- magic num
 '========================================'
 .================ PROGRAM ===============.
 00                           -- nop
-01 02000000                  -- constant 2
+01 02000000                  -- const 2
 02                           -- pop
 '========================================'
 ```

@@ -1,5 +1,5 @@
 use crate::vm::stack::Stack;
-use crate::vm::stack::{StackPointer, StackItem};
+use crate::vm::stack::{StackPointer, StackItem, Shift};
 use crate::vm::chunk::ChunkOffset;
 use crate::vm::opcode::Argument;
 
@@ -22,9 +22,9 @@ pub fn handle_nop(args: &[Argument], offset: ChunkOffset, _stack: &mut Vec<Stack
 pub fn handle_constant(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
-    let data = args[0] as StackItem;
-    stack.push(data);
-    println!("CONSTANT {}", data);
+    let constant = args[0] as StackItem;
+    stack.push(constant);
+    println!("CONST {}", constant);
 
     return offset + compute_opcode_size(args.len());
 }
@@ -38,13 +38,36 @@ pub fn handle_pop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
+pub fn handle_drop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let count = args[0] as usize;
+    for _ in 0..count {
+        stack.pop().expect(POP_ERROR_STR);
+    }
+    println!("DROP {}", count);
+
+    return offset + compute_opcode_size(args.len());
+}
+
 pub fn handle_copy(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let address = args[0] as StackPointer;
     let data = stack.get(address);
     stack.push(data);
-    println!("PUSH {} ({})", address, data);
+    println!("COPY {} ({})", address, data);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_store(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let address = args[0] as StackPointer;
+    let data = stack.pop().expect(POP_ERROR_STR);
+    stack.set(address, data);
+    println!("STORE {} ({})", address, data);
 
     return offset + compute_opcode_size(args.len());
 }
@@ -57,6 +80,18 @@ pub fn handle_swap(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     stack.push(b);
     stack.push(a);
     println!("SWAP {} {} -> {} {}", a, b, b, a);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_rot(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let count = args[0] as StackPointer;
+
+    let item_moving_down = stack.pop().expect(POP_ERROR_STR);
+    Stack::insert(stack, count, item_moving_down);
+    println!("ROT {}", count);
 
     return offset + compute_opcode_size(args.len());
 }
@@ -224,4 +259,106 @@ pub fn handle_xor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     println!("XOR {} {} -> {}", a, b, boolean_xor);
 
     return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_shl(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let shift_amount = stack.pop().expect(POP_ERROR_STR);
+    let value = stack.pop().expect(POP_ERROR_STR);
+    let shifted = shift_amount << value;
+    stack.push(shifted as StackItem);
+    println!("SHL {} {} -> {}", value, shift_amount, shifted);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_shrl(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let shift_amount = stack.pop().expect(POP_ERROR_STR);
+    let value = stack.pop().expect(POP_ERROR_STR);
+    let shifted = value.logical_shift(shift_amount);
+    stack.push(shifted as StackItem);
+    println!("SHRL {} {} -> {}", value, shift_amount, shifted);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_shra(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 0);
+
+    let shift_amount = stack.pop().expect(POP_ERROR_STR);
+    let value = stack.pop().expect(POP_ERROR_STR);
+    let shifted = value.logical_shift(shift_amount);
+    stack.push(shifted as StackItem);
+    println!("SHRA {} {} -> {}", value, shift_amount, shifted);
+
+    return offset + compute_opcode_size(args.len());
+}
+
+pub fn handle_jump(args: &[Argument], _offset: ChunkOffset, _stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let address = args[0] as ChunkOffset;
+    println!("JUMP {}", address);
+
+    return address;
+}
+
+pub fn handle_ifz(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let address = args[0] as ChunkOffset;
+    let condition = stack.pop().expect(POP_ERROR_STR);
+    println!("IFZ {} ({})", address, condition);
+
+    if condition == 0 {
+        return address;
+    } else {
+        return offset + compute_opcode_size(args.len());
+    }
+
+}
+
+pub fn handle_ifnz(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let address = args[0] as ChunkOffset;
+    let condition = stack.pop().expect(POP_ERROR_STR);
+    println!("IFNZ {} ({})", address, condition);
+
+    if condition != 0 {
+        return address;
+    } else {
+        return offset + compute_opcode_size(args.len());
+    }
+
+}
+
+pub fn handle_call(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let call_address = args[0] as ChunkOffset;
+    let return_address = offset + compute_opcode_size(args.len());
+    stack.push(return_address as StackItem);
+    println!("CALL {}", call_address);
+
+    return call_address;
+}
+
+pub fn handle_return(args: &[Argument], _offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+    assert_eq!(args.len(), 1);
+
+    let discard_count = args[0] as usize;
+    for _ in 0..discard_count {
+        stack.pop().expect(POP_ERROR_STR);
+    }
+
+    let return_address = stack.pop().expect(POP_ERROR_STR);
+    assert!(return_address >= 0, "Return address must be non-negative");
+
+    println!("RETURN {} -> ({})", discard_count, return_address);
+
+    return return_address as usize;
 }

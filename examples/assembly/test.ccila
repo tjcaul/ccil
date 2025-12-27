@@ -1,14 +1,14 @@
 nop // do nothing
 
 // push constants to stack
-constant 6
-constant 7
+const 6
+const 7
 
 // pop 6 and 7, push 13 to stack
 add
 
-constant 9
-constant 8
+const 9
+const 8
 
 // copy 2-from-top stack item (13) to top of stack
 copy 2

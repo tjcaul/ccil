@@ -31,7 +31,7 @@ impl<'a> OpCodeLookup<'a> {
             match &byte_lookup[opcode.byte as usize] {
                 &Some(opcode2) => {
                     panic!(
-                        "Opcodes {} and {} both have byte {:02x}",
+                        "Opcodes {} and {} both have byte 0x{:02x}",
                         opcode.symbol,
                         opcode2.symbol,
                         opcode.byte
@@ -44,7 +44,7 @@ impl<'a> OpCodeLookup<'a> {
             match symbol_lookup.get(opcode.symbol) {
                 Some(&opcode2) => {
                     panic!(
-                        "Opcodes with bytes {:02x} and {:02x} both have symbol {}",
+                        "Opcodes with bytes 0x{:02x} and 0x{:02x} both have symbol {}",
                         opcode.byte,
                         opcode2.byte,
                         opcode.symbol
@@ -77,7 +77,7 @@ const OPCODES: &[OpCode] = &[
         handler: handle_op::handle_nop, num_params: 0
     },
     OpCode {
-        symbol: "CONSTANT", byte: 0x01,
+        symbol: "CONST", byte: 0x01,
         handler: handle_op::handle_constant, num_params: 1
     },
     OpCode {
@@ -85,12 +85,24 @@ const OPCODES: &[OpCode] = &[
         handler: handle_op::handle_pop, num_params: 0
     },
     OpCode {
-        symbol: "COPY", byte: 0x03,
+        symbol: "DROP", byte: 0x03,
+        handler: handle_op::handle_drop, num_params: 1
+    },
+    OpCode {
+        symbol: "COPY", byte: 0x04,
         handler: handle_op::handle_copy, num_params: 1
     },
     OpCode {
-        symbol: "SWAP", byte: 0x04,
+        symbol: "STORE", byte: 0x05,
+        handler: handle_op::handle_store, num_params: 1
+    },
+    OpCode {
+        symbol: "SWAP", byte: 0x06,
         handler: handle_op::handle_swap, num_params: 0
+    },
+    OpCode {
+        symbol: "ROT", byte: 0x07,
+        handler: handle_op::handle_rot, num_params: 1
     },
     OpCode {
         symbol: "NEG", byte: 0x10,
@@ -147,5 +159,37 @@ const OPCODES: &[OpCode] = &[
     OpCode {
         symbol: "XOR", byte: 0x27,
         handler: handle_op::handle_xor, num_params: 0
+    },
+    OpCode {
+        symbol: "SHL", byte: 0x28,
+        handler: handle_op::handle_shl, num_params: 0
+    },
+    OpCode {
+        symbol: "SHRL", byte: 0x29,
+        handler: handle_op::handle_shrl, num_params: 0
+    },
+    OpCode {
+        symbol: "SHRA", byte: 0x2a,
+        handler: handle_op::handle_shra, num_params: 0
+    },
+    OpCode {
+        symbol: "JUMP", byte: 0x30,
+        handler: handle_op::handle_jump, num_params: 1
+    },
+    OpCode {
+        symbol: "IFZ", byte: 0x31,
+        handler: handle_op::handle_ifz, num_params: 1
+    },
+    OpCode {
+        symbol: "IFNZ", byte: 0x32,
+        handler: handle_op::handle_ifnz, num_params: 1
+    },
+    OpCode {
+        symbol: "CALL", byte: 0x33,
+        handler: handle_op::handle_call, num_params: 1
+    },
+    OpCode {
+        symbol: "RETURN", byte: 0x34,
+        handler: handle_op::handle_return, num_params: 1
     },
 ];

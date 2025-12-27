@@ -1,0 +1,43 @@
+//// Entrypoint
+// set up some arbitrary stack state
+const 17
+const 19
+
+// push arguments in reverse order
+const 44
+const 55
+
+// reserve space for return val
+const 0
+
+// call function
+call 46
+
+// move return value below arguments
+rot 2
+
+// discard arguments
+drop 2
+
+// discard return value
+pop
+
+// end program by jumping to end of chunk
+jump 72
+
+//// Function
+// introduce a random local
+const 82
+
+// copy arguments to top of stack
+copy 3
+copy 5
+
+// perform computation
+sub
+
+// store result to return val slot
+store 2
+
+// discard 1 local and return
+return 1

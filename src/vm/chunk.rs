@@ -1,5 +1,5 @@
 use crate::vm::opcode::{OpCode, OpCodeLookup};
-use crate::vm::stack::{StackPointer, StackItem};
+use crate::vm::stack::{VecStack, Stack, StackPointer};
 
 pub type ChunkOffset = usize;
 
@@ -55,7 +55,7 @@ impl Chunk for Vec<u8> {
 
     fn execute(&self, lookup: &OpCodeLookup) {
         let mut offset = 0;
-        let mut stack = Vec::<StackItem>::new();
+        let mut stack = VecStack::new();
 
         while offset < self.len() {
             // Get opcode at current pos (guaranteed to be opcode by invariant)

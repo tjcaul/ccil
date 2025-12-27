@@ -1,9 +1,8 @@
-use crate::vm::stack::Stack;
-use crate::vm::stack::{StackPointer, StackItem, Shift};
+use crate::vm::stack::{VecStack, Stack, StackPointer, StackItem, Shift};
 use crate::vm::chunk::ChunkOffset;
 use crate::vm::opcode::Argument;
 
-pub type OpcodeHandler = fn(&[Argument], ChunkOffset, &mut Vec<StackItem>) -> ChunkOffset;
+pub type OpcodeHandler = fn(&[Argument], ChunkOffset, &mut VecStack) -> ChunkOffset;
 
 const POP_ERROR_STR: &str = "Popped from empty stack";
 
@@ -11,7 +10,7 @@ fn compute_opcode_size(num_args: usize) -> ChunkOffset {
     1 + num_args * (Argument::BITS as usize) / (u8::BITS as usize)
 }
 
-pub fn handle_nop(args: &[Argument], offset: ChunkOffset, _stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_nop(args: &[Argument], offset: ChunkOffset, _stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     println!("NOP");
@@ -19,7 +18,7 @@ pub fn handle_nop(args: &[Argument], offset: ChunkOffset, _stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_constant(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_constant(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let constant = args[0] as StackItem;
@@ -29,7 +28,7 @@ pub fn handle_constant(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<S
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_pop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_pop(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let val = stack.pop().expect(POP_ERROR_STR);
@@ -38,7 +37,7 @@ pub fn handle_pop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_drop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_drop(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let count = args[0] as usize;
@@ -50,7 +49,7 @@ pub fn handle_drop(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_copy(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_copy(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let address = args[0] as StackPointer;
@@ -61,7 +60,7 @@ pub fn handle_copy(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_store(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_store(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let address = args[0] as StackPointer;
@@ -72,7 +71,7 @@ pub fn handle_store(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stac
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_swap(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_swap(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR);
@@ -84,19 +83,19 @@ pub fn handle_swap(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_rot(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_rot(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let count = args[0] as StackPointer;
 
     let item_moving_down = stack.pop().expect(POP_ERROR_STR);
-    Stack::insert(stack, count, item_moving_down);
+    stack.insert(count, item_moving_down);
     println!("ROT {}", count);
 
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_neg(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_neg(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let val = stack.pop().expect(POP_ERROR_STR);
@@ -107,7 +106,7 @@ pub fn handle_neg(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_add(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_add(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR);
@@ -119,7 +118,7 @@ pub fn handle_add(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_sub(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_sub(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR);
@@ -131,7 +130,7 @@ pub fn handle_sub(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_mul(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_mul(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR);
@@ -143,7 +142,7 @@ pub fn handle_mul(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_div(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_div(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let divisor = stack.pop().expect(POP_ERROR_STR);
@@ -155,7 +154,7 @@ pub fn handle_div(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_mod(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_mod(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let divisor = stack.pop().expect(POP_ERROR_STR);
@@ -167,7 +166,7 @@ pub fn handle_mod(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_bnot(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_bnot(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let val = stack.pop().expect(POP_ERROR_STR);
@@ -178,7 +177,7 @@ pub fn handle_bnot(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_bor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_bor(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR);
@@ -190,7 +189,7 @@ pub fn handle_bor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_band(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_band(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR);
@@ -202,7 +201,7 @@ pub fn handle_band(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_bxor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_bxor(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR);
@@ -214,7 +213,7 @@ pub fn handle_bxor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_not(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_not(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let val = stack.pop().expect(POP_ERROR_STR) != 0;
@@ -225,7 +224,7 @@ pub fn handle_not(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_or(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_or(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR) != 0;
@@ -237,7 +236,7 @@ pub fn handle_or(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackIt
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_and(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_and(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR) != 0;
@@ -249,7 +248,7 @@ pub fn handle_and(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_xor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_xor(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let b = stack.pop().expect(POP_ERROR_STR) != 0;
@@ -261,7 +260,7 @@ pub fn handle_xor(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_shl(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_shl(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let shift_amount = stack.pop().expect(POP_ERROR_STR);
@@ -273,7 +272,7 @@ pub fn handle_shl(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_shrl(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_shrl(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let shift_amount = stack.pop().expect(POP_ERROR_STR);
@@ -285,7 +284,7 @@ pub fn handle_shrl(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_shra(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_shra(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 0);
 
     let shift_amount = stack.pop().expect(POP_ERROR_STR);
@@ -297,7 +296,7 @@ pub fn handle_shra(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return offset + compute_opcode_size(args.len());
 }
 
-pub fn handle_jump(args: &[Argument], _offset: ChunkOffset, _stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_jump(args: &[Argument], _offset: ChunkOffset, _stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let address = args[0] as ChunkOffset;
@@ -306,7 +305,7 @@ pub fn handle_jump(args: &[Argument], _offset: ChunkOffset, _stack: &mut Vec<Sta
     return address;
 }
 
-pub fn handle_ifz(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_ifz(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let address = args[0] as ChunkOffset;
@@ -321,7 +320,7 @@ pub fn handle_ifz(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackI
 
 }
 
-pub fn handle_ifnz(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_ifnz(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let address = args[0] as ChunkOffset;
@@ -336,7 +335,7 @@ pub fn handle_ifnz(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
 
 }
 
-pub fn handle_call(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_call(args: &[Argument], offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let call_address = args[0] as ChunkOffset;
@@ -347,7 +346,7 @@ pub fn handle_call(args: &[Argument], offset: ChunkOffset, stack: &mut Vec<Stack
     return call_address;
 }
 
-pub fn handle_return(args: &[Argument], _offset: ChunkOffset, stack: &mut Vec<StackItem>) -> ChunkOffset {
+pub fn handle_return(args: &[Argument], _offset: ChunkOffset, stack: &mut VecStack) -> ChunkOffset {
     assert_eq!(args.len(), 1);
 
     let discard_count = args[0] as usize;

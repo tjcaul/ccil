@@ -1,3 +1,5 @@
+use std::fmt;
+
 pub type StackPointer = i32;
 pub type StackItem = i8;
 
@@ -25,23 +27,50 @@ impl Shift<StackItem> for i8 {
 }
 
 pub trait Stack {
+    fn new() -> Self;
     fn get(&self, offset: StackPointer) -> StackItem;
     fn insert(&mut self, offset: StackPointer, item: StackItem);
     fn set(&mut self, offset: StackPointer, item: StackItem);
+    fn push(&mut self, item: StackItem);
+    fn pop(&mut self) -> Option<StackItem>;
 }
 
-impl Stack for Vec<StackItem> {
-    fn get(&self, offset: StackPointer) -> StackItem {
-        let index = self.len() - 1 - offset as usize;
-        return self[index];
+pub struct VecStack {
+    items: Vec<StackItem>
+}
+
+impl Stack for VecStack {
+    fn new() -> Self {
+        let items = Vec::<StackItem>::new();
+        return Self { items };
     }
-    
+
+    fn get(&self, offset: StackPointer) -> StackItem {
+        let index = self.items.len() - 1 - offset as usize;
+        return self.items[index];
+    }
+
     fn insert(&mut self, offset: StackPointer, item: StackItem) {
-        Vec::<StackItem>::insert(self, self.len() - offset as usize, item);
+        let index = self.items.len() - offset as usize;
+        self.items.insert(index, item);
     }
 
     fn set(&mut self, offset: StackPointer, item: StackItem) {
-        let index = self.len() - 1 - offset as usize;
-        self[index] = item;
+        let index = self.items.len() - 1 - offset as usize;
+        self.items[index] = item;
+    }
+
+    fn push(&mut self, item: StackItem) {
+        self.items.push(item);
+    }
+
+    fn pop(&mut self) -> Option<StackItem> {
+        return self.items.pop();
+    }
+}
+
+impl fmt::Debug for VecStack {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        self.items.fmt(f)
     }
 }

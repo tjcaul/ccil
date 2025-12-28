@@ -250,7 +250,7 @@ impl Token {
     }
 
     pub fn full_scan(input: &str) -> Vec<Self> {
-        let mut remaining = input;
+        let mut remaining = trim_start_comments(input);
         let mut retval = Vec::<Token>::new();
         while retval.last().unwrap_or(&Token::LeftParen) != &Token::EOF {
             let (next_token, unused_slice) = Token::scan_token(remaining);

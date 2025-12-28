@@ -80,7 +80,7 @@ impl Parser {
             let expr = self.generate_expression();
             self.floating_expressions.push(expr);
         }
-        //self.consume_expected(ending_token);
+
         return match self.floating_expressions.len() {
             0 => Expr::Empty,
             1 => self.floating_expressions.pop().unwrap(),

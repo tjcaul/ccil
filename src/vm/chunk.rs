@@ -71,7 +71,11 @@ impl Chunk for Vec<u8> {
             }
 
             // Run handler for op, we get next offset
-            offset = (chunk_code.handler)(&args, offset, &mut stack);
+            match (chunk_code.handler)(&args, offset, &mut stack) {
+                Ok(Some(new_offset)) => { offset = new_offset; },
+                Ok(None) => { break; }, // program exited
+                Err(err) => { panic!("Error at chunk offset {}: {}", offset, err); }
+            }
             println!("\t{:?}", stack);
         }
     }

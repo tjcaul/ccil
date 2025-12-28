@@ -93,9 +93,10 @@ impl Token {
             // Minus is ambiguous
             Minus => {
                 if has_prefix {
-                    Term;
+                    Term
+                } else {
+                    Unary
                 }
-                Unary
             },
             Star | Slash => Factor,
             Bang | Tilde => Unary,

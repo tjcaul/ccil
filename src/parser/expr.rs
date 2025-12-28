@@ -291,8 +291,6 @@ impl Parser {
     pub fn return_statement(&mut self, _token: &Token) -> Expr {
         // return captures everything, so we just take the rest and regenerate it
         let retval = self.generate_until_semicolon();
-        // push a semicolon back onto stack to preserve invariant
-        //self.tokens_to_process.push(Token::Semicolon);
         return Expr::ReturnStatement(Box::new(retval));
     }
 

@@ -1,4 +1,4 @@
-use crate::parser::{Parser, expr_compare::ExprType, token::Token};
+use crate::parser::{Parser, expr_compare::ExprType, rules::Precedence, token::Token};
 
 #[allow(unused)]
 #[derive(Debug, Clone, PartialEq)]
@@ -75,7 +75,7 @@ impl Parser {
     }
 
     /// Generate a single expression up until (and excluding) the specified ending token.
-    pub fn generate_until(&mut self, ending_token: Token) -> Expr {
+    pub fn generate_until_token(&mut self, ending_token: Token) -> Expr {
         while self.peek() != ending_token && self.peek() != Token::EOF {
             let expr = self.generate_expression();
             self.floating_expressions.push(expr);
@@ -90,12 +90,24 @@ impl Parser {
 
     /// Generate a semicolon-separated line.
     pub fn generate_until_semicolon(&mut self) -> Expr {
-        self.generate_until(Token::Semicolon)
+        self.generate_until_token(Token::Semicolon)
+    }
+
+    /// Generates until precedence is lower.
+    fn generate_until_precedence(&mut self, precedence: Precedence) -> Expr {
+        let mut has_prefix = false;
+        while self.peek() != Token::EOF && self.peek().get_precedence(has_prefix) >= precedence {
+            let expr = self.generate_expression();
+            // track the type of the statement directly left of whatever we care about next
+            has_prefix = expr.is_type(&ExprType::Variable) || expr.is_type(&ExprType::Literal);
+            self.floating_expressions.push(expr);
+        }
+        return self.floating_expressions.pop().unwrap_or(Expr::Empty);
     }
 
     /// Parse a unary expression (an operator followed by another expression)
     pub fn unary(&mut self, token: &Token) -> Expr {
-        let expr = self.generate_expression();
+        let expr = self.generate_until_precedence(token.get_precedence(false));
         return Expr::Unary(token.clone(), Box::new(expr));
     }
 
@@ -105,7 +117,7 @@ impl Parser {
             Some(val) => val,
             None => self.raise_parsing_error(format!("Binary operator {:?} has no left hand side", token))
         };
-        let right_expr = self.generate_expression();
+        let right_expr = self.generate_until_precedence(token.get_precedence(true));
         return Expr::Binary(token.clone(), Box::new(left_expr), Box::new(right_expr));
     }
 
@@ -118,6 +130,7 @@ impl Parser {
             _ => Token::Dummy // unreachable
         };
 
+        // TODO: cleanup
         while self.tokens_to_process.last().unwrap_or(&opposite) != &opposite {
             let expr = self.generate_expression();
             self.floating_expressions.push(expr);
@@ -269,7 +282,7 @@ impl Parser {
     /// Parse a print statement, with its only field being its argument.
     pub fn print_statement(&mut self, _token: &Token) -> Expr {
         self.consume_expected(Token::LeftParen);
-        let argument = self.generate_until(Token::RightParen);
+        let argument = self.generate_until_token(Token::RightParen);
         self.consume_expected(Token::RightParen);
         return Expr::PrintStatement(Box::new(argument));
     }

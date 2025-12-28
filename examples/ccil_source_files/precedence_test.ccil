@@ -2,4 +2,12 @@
 1+2*3;
 2*3+1;
 
+// The following should assign correctly
 asdf = 1 + 2;
+
+// The following two should have different parses
+(1+2)/3;
+1+(2/3);
+
+// complex expression
+(1+2)+3+4+(5*6-3*12)+166-(12<<1|4);

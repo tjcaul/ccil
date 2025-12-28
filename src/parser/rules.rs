@@ -23,7 +23,8 @@ pub enum Precedence {
     Factor,      // * /
     Unary,       // ! - ~
     Call,
-    Primary
+    Literal,
+    Grouping
 }
 
 #[allow(unused)]
@@ -85,9 +86,8 @@ impl Token {
         use Token::*;
         use Precedence::*;
         match self {
-            LeftParen | LeftCurly | LeftSquare | Comma |
-            String(_) | Number(_) | Float(_) | Boolean(_) | Null |
-            Var | Func | For | While | Print | Return | If => Lowest,
+            Comma | Var | Func | For | While | Print | Return | If => Lowest,
+            LeftParen | LeftCurly | LeftSquare => Grouping,
             Plus => Term,
             // Minus is ambiguous
             Minus => {
@@ -103,6 +103,7 @@ impl Token {
             Carat => BitwiseXor,
             SingleOr => BitwiseOr,
             DoubleLessThan | DoubleGreaterThan => BitShift,
+            String(_) | Number(_) | Float(_) | Boolean(_) | Null => Literal,
             VarName(_) => Call,
             Equals => Assignment,
             And => BooleanAnd,

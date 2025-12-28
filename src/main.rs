@@ -24,7 +24,9 @@ fn repl() -> ! {
         let tokenization_result = Token::full_scan(&buffer);
         let mut parser = Parser::new(tokenization_result);
         parser.full_parse();
-        println!("{:?}", parser.expressions);
+        for expr in parser.expressions {
+            println!("{:?}", expr);
+        }
     }
 }
 
@@ -44,7 +46,7 @@ fn main() {
     let scan_result = Token::full_scan(&source_file);
     let mut parser = Parser::new(scan_result);
     parser.full_parse();
-
-    println!("{:?}", parser.expressions);
-    
+    for expr in parser.expressions {
+        println!("{:?}", expr);
+    }
 }

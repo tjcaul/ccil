@@ -1,4 +1,4 @@
-use crate::parser::{Parser, expr_compare::ExprType, rules::ParseRule, token::Token};
+use crate::parser::{Parser, expr_compare::ExprType, token::Token};
 
 #[allow(unused)]
 #[derive(Debug, Clone, PartialEq)]
@@ -35,12 +35,12 @@ impl Parser {
             return Expr::Empty;
         }
 
-        let parse_rule = match ParseRule::get_parse_rule(&current_token) {
+        let parse_rule = match current_token.get_parse_rule() {
             Some(val) => val,
             None => self.raise_parsing_error(format!("Unexpected token {:?}", current_token))
         };
 
-        return (parse_rule.handler)(self, &current_token);
+        return (parse_rule)(self, &current_token);
     }
 
     /// Generate an expression with an expected type. Returns the expression.
@@ -74,13 +74,13 @@ impl Parser {
         return Expr::Subexprs(boxed);
     }
 
-    /// Generate a single expression up until the specified ending token.
+    /// Generate a single expression up until (and excluding) the specified ending token.
     pub fn generate_until(&mut self, ending_token: Token) -> Expr {
         while self.peek() != ending_token && self.peek() != Token::EOF {
             let expr = self.generate_expression();
             self.floating_expressions.push(expr);
         }
-        self.consume_expected(ending_token);
+        //self.consume_expected(ending_token);
         return match self.floating_expressions.len() {
             0 => Expr::Empty,
             1 => self.floating_expressions.pop().unwrap(),
@@ -270,6 +270,7 @@ impl Parser {
     pub fn print_statement(&mut self, _token: &Token) -> Expr {
         self.consume_expected(Token::LeftParen);
         let argument = self.generate_until(Token::RightParen);
+        self.consume_expected(Token::RightParen);
         return Expr::PrintStatement(Box::new(argument));
     }
 
@@ -278,7 +279,7 @@ impl Parser {
         // return captures everything, so we just take the rest and regenerate it
         let retval = self.generate_until_semicolon();
         // push a semicolon back onto stack to preserve invariant
-        self.tokens_to_process.push(Token::Semicolon);
+        //self.tokens_to_process.push(Token::Semicolon);
         return Expr::ReturnStatement(Box::new(retval));
     }
 

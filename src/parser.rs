@@ -35,6 +35,7 @@ impl Parser {
     /// If EOF is reached, return do nothing.
     pub fn parse_step(&mut self) {
         let expr = self.generate_until_semicolon();
+        self.consume_expected(Token::Semicolon);
         self.expressions.push(expr);
     }
     

@@ -31,8 +31,7 @@ impl Token {
     pub fn get_parse_rule(&self) -> Option<ParseRule> {
         // Import into namespace for brevity
         use Token::*;
-        // For some reason we have to explicitly indicate type here instead of using alias ParseRule
-        let handler : fn(&mut Parser, &Token) -> Expr = match self {
+        let handler = match self {
             // Start of a group
             LeftParen | LeftCurly | LeftSquare => Parser::grouping,
 

@@ -5,3 +5,15 @@ func sum(left, right) {
 };
 
 sum(123, 456);
+
+for(var i = 0, i < 10, i = i + 1) {
+    sum(345, 456);
+};
+
+while(true) {
+    sum(6, 7);
+};
+
+if(true) {
+    sum(6, 7);
+};

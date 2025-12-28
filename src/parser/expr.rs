@@ -16,7 +16,7 @@ pub enum Expr {
     VaribleDeclaration(Box<Expr>),
     FunctionDeclaration(Box<Expr>, Box<Expr>, Box<Expr>),
     FunctionCall(Token, Box<Expr>),
-    ForLoop(Box<Expr>, Box<Expr>, Box<Expr>, Box<Expr>),
+    ForLoop(Box<Expr>, Box<Expr>),
     WhileLoop(Box<Expr>, Box<Expr>),
     PrintStatement(Box<Expr>),
     ReturnStatement(Box<Expr>),
@@ -128,8 +128,8 @@ impl Parser {
             _ => Token::Dummy // unreachable
         };
 
-        // TODO: cleanup
-        while self.tokens_to_process.last().unwrap_or(&opposite) != &opposite {
+        // TODO: cleanup to use generate_until_token
+        while &self.peek() != &opposite {
             let expr = self.generate_expression();
             self.floating_expressions.push(expr);
         }
@@ -167,7 +167,7 @@ impl Parser {
         };
         let mut expr_list = vec![Box::new(left_expr)];
         loop {
-            let rhs = self.generate_expression();
+            let rhs = self.generate_until_precedence(Precedence::Lowest.next_highest());
             expr_list.push(Box::new(rhs));
             if self.peek() != Token::Comma {
                 break;
@@ -231,7 +231,7 @@ impl Parser {
         let variable = self.expected_expression(&ExprType::Variable);
         self.floating_expressions.push(variable);
         let assignment = self.expected_expression(
-            &ExprType::Variable
+            &ExprType::Binary
         );
         return Expr::VaribleDeclaration(Box::new(assignment));
     }
@@ -265,16 +265,47 @@ impl Parser {
     }
 
     /// Parse an expression declaring a for loop, which contains (in order):
-    /// The C-style for loop arguments as the first three exprs,
+    /// The C-style for loop arguments as a guaranteed 3-element CommaSeparatedList,
     /// and the body as a Subexprs.
     pub fn for_loop(&mut self, _token: &Token) -> Expr {
-        todo!()
+        let args = self.expect_grouped_csl();
+        match &args {
+            Expr::CommaSeparatedList(arg_list) => {
+                if arg_list.len() != 3 {
+                    self.raise_parsing_error(
+                        format!("Expected for loop to have 3 arguments, got {}", arg_list.len())
+                    );
+                }
+                let declaration_arg = &*arg_list[0];
+                if !declaration_arg.is_type(&ExprType::VaribleDeclaration) {
+                    self.raise_parsing_error(
+                        "First item of for loop arguments should be Variable Declaration".to_owned()
+                    );
+                }
+            },
+            _ => () // unreachable
+        }
+
+        self.consume_expected(Token::LeftCurly);
+        let subexprs = self.generate_subexprs(&Token::RightCurly);
+        return Expr::ForLoop(Box::new(args), Box::new(subexprs));
     }
 
     /// Parse an expression declaring a while loop, which contains (in order):
-    /// The while loop condition, and the body as a CurlyGrouping of a Subexprs.
+    /// The while loop condition, and the body as a Subexprs.
     pub fn while_loop(&mut self, _token: &Token) -> Expr {
-        todo!()
+        self.consume_expected(Token::LeftParen);
+        let argument = self.generate_until_token(Token::RightParen);
+        match argument {
+            Expr::CommaSeparatedList(_) => self.raise_parsing_error("While loop can only have one argument".to_owned()),
+            _ => {}
+        }
+
+        self.consume_expected(Token::RightParen);
+
+        self.consume_expected(Token::LeftCurly);
+        let subexprs = self.generate_subexprs(&Token::RightCurly);
+        return Expr::WhileLoop(Box::new(argument), Box::new(subexprs));
     }
 
     /// Parse a print statement, with its only field being its argument.
@@ -293,8 +324,18 @@ impl Parser {
     }
 
     /// Parse an if statement, which contains (in order):
-    /// The condition, and the body as a CurlyGrouping of a Subexprs.
+    /// The condition, and the body as a Subexprs.
     pub fn if_statement(&mut self, _token: &Token) -> Expr {
-        todo!()
+        self.consume_expected(Token::LeftParen);
+        let argument = self.generate_until_token(Token::RightParen);
+        match argument {
+            Expr::CommaSeparatedList(_) => self.raise_parsing_error("If statement can only have one argument".to_owned()),
+            _ => {}
+        }
+        self.consume_expected(Token::RightParen);
+
+        self.consume_expected(Token::LeftCurly);
+        let subexprs = self.generate_subexprs(&Token::RightCurly);
+        return Expr::IfStatement(Box::new(argument), Box::new(subexprs));
     }
 }

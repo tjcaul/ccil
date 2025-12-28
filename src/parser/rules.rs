@@ -24,7 +24,33 @@ pub enum Precedence {
     Unary,       // ! - ~
     Call,
     Literal,
-    Grouping
+    Grouping,
+    Highest
+}
+
+impl Precedence {
+    pub fn next_highest(&self) -> Self {
+        use Precedence::*;
+        match self {
+            Lowest => Assignment,
+            Assignment => BooleanOr,
+            BooleanOr => BooleanAnd,
+            BooleanAnd => BitwiseOr,
+            BitwiseOr => BitwiseXor,
+            BitwiseXor => BitwiseAnd,
+            BitwiseAnd => Equality,
+            Equality => Comparison,
+            Comparison => BitShift,
+            BitShift => Term,
+            Term => Factor,
+            Factor => Unary,
+            Unary => Call,
+            Call => Literal,
+            Literal => Grouping,
+            Grouping => Highest,
+            Highest => Highest
+        }
+    }
 }
 
 #[allow(unused)]

@@ -41,7 +41,7 @@ impl ExprType {
             VaribleDeclaration(_) => Self::VaribleDeclaration,
             FunctionDeclaration(_, _, _) => Self::FunctionDeclaration,
             FunctionCall(_, _) => Self::FunctionCall,
-            ForLoop(_, _, _, _) => Self::ForLoop,
+            ForLoop(_, _) => Self::ForLoop,
             WhileLoop(_, _) => Self::WhileLoop,
             PrintStatement(_) => Self::PrintStatement,
             ReturnStatement(_) => Self::ReturnStatement,
@@ -70,7 +70,7 @@ impl Expr {
             ),
             FunctionCall => Self::FunctionCall(Token::Dummy, Box::new(Expr::Empty)),
             ForLoop => Self::ForLoop(
-                Box::new(Expr::Empty), Box::new(Expr::Empty), Box::new(Expr::Empty), Box::new(Expr::Empty)
+                Box::new(Expr::Empty), Box::new(Expr::Empty)
             ),
             WhileLoop => Self::WhileLoop(Box::new(Expr::Empty), Box::new(Expr::Empty)),
             PrintStatement => Self::PrintStatement(Box::new(Expr::Empty)),

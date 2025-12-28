@@ -23,8 +23,6 @@ pub enum Expr {
     IfStatement(Box<Expr>, Box<Expr>),
 }
 
-
-
 impl Parser {
     /// Internal function meant to be called at the start of an expected new child expression.
     /// We should parse recursively with expressions -> parse rules -> expressions, etc.

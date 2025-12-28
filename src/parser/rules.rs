@@ -57,8 +57,8 @@ impl ParseRule {
             SingleOr => (Parser::binary, BitwiseOr),
             DoubleLessThan | DoubleGreaterThan => (Parser::binary, BitShift),
 
-            // Variable Name
-            VarName(_) => (Parser::variable, Lowest),
+            // Variable Name (or function call)
+            VarName(_) => (Parser::variable, Call),
 
             // Assignment
             Equals => (Parser::assignment, Assignment),
@@ -84,6 +84,7 @@ impl ParseRule {
             For => (Parser::for_loop, Lowest),
             While => (Parser::while_loop, Lowest),
             Print => (Parser::print_statement, Lowest),
+            Return => (Parser::return_statement, Lowest),
             If => (Parser::if_statement, Lowest),
 
             // The following tokens are "unexpected" here because they're only always consumed by other means:

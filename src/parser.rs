@@ -1,10 +1,11 @@
-use crate::parser::{expr::Expr, rules::ParseRule, token::Token};
+use crate::parser::{expr::Expr, token::Token};
 pub mod expr;
+pub mod expr_compare;
 pub mod token;
 pub mod rules;
 
 #[allow(unused)]
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Parser {
     current_line: usize,
     tokens_to_process: Vec<Token>,
@@ -30,56 +31,47 @@ impl Parser {
         std::process::exit(1);
     }
 
-    /// Steps forward a token in the parser and adds an expression if necessary.
+    /// Steps forward a token in the parser and adds a parentless expression.
     /// If EOF is reached, return do nothing.
     pub fn parse_step(&mut self) {
-        let current_token = self.consume_and_return();
-        // TODO: maybe just consider moving this return to later when we pattern match for none?
-        if current_token == Token::EOF {
-            return;
+        let expr = self.generate_until_semicolon();
+        self.expressions.push(expr);
+    }
+    
+    /// Performs parses until out of tokens to parse.
+    pub fn full_parse(&mut self) {
+        while self.peek() != Token::EOF {
+            self.parse_step();
         }
-        if current_token == Token::Semicolon {
-            self.expressions.push(match self.floating_expressions.len() {
-                0 => Expr::Empty,
-                1 => self.floating_expressions.pop().unwrap(),
-                _ => self.raise_parsing_error("Illegal expression".to_owned())
-            });
-            return;
-        }
-        if current_token == Token::NewLine {
-            self.current_line += 1;
-            return;
-        }
-
-        let parse_rule = match ParseRule::get_parse_rule(&current_token) {
-            Some(val) => val,
-            None => self.raise_parsing_error(format!("Unexpected token {:?}", current_token))
-        };
-
-        let expr = (parse_rule.handler)(self, &current_token);
-
-        self.floating_expressions.push(expr);
     }
 
-    /// Pops the top token from the stack and returns it.
+    /// Tells us the next token without popping it from the stack.
+    fn peek(&mut self) -> Token {
+        self.tokens_to_process
+            .iter().rev().find(|&x| x != &Token::NewLine)
+            .unwrap_or(&Token::EOF)
+            .clone()
+    }
+
+    /// Pops the top token from the stack and returns it. On NewLine, increments the counter and tries again.
     fn consume_and_return(&mut self) -> Token {
-        self.tokens_to_process.pop().unwrap_or(Token::EOF)
+        let token = self.tokens_to_process.pop().unwrap_or(Token::EOF);
+        if token == Token::NewLine {
+            self.current_line += 1;
+            return self.consume_and_return();
+        }
+        return token;
     }
 
     /// Consumes the token and errors out if encountering another.
     /// Ignores fields. Shouldn't really be used with any fields
     /// but just set to some dummy value for expected.
-    fn consume_expected(&mut self, expected: Token) {
+    fn consume_expected(&mut self, expected: Token) -> Token {
         let token = self.consume_and_return();
         if std::mem::discriminant(&token) != std::mem::discriminant(&expected) {
             self.raise_parsing_error(format!("Expected token {:?}, got token {:?}", expected, token));
         }
-    }
-
-    pub fn full_parse(&mut self) {
-        while !self.tokens_to_process.is_empty() {
-            self.parse_step();
-        }
+        return token;
     }
 
     /// Emits bytecode of completed expressions into a chunk.

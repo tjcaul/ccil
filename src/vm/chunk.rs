@@ -1,3 +1,6 @@
+use chrono::Utc;
+
+use crate::constants::{BYTECODE_HEADER_SIZE, CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1};
 use crate::vm::opcode::{OpCode, OpCodeLookup};
 use crate::vm::stack::{VecStack, Stack, StackPointer};
 
@@ -12,6 +15,9 @@ pub trait Chunk {
     fn write_arg(&mut self, arg: StackPointer);
     fn read_arg(&self, offset: ChunkOffset) -> StackPointer;
     fn execute(&self, lookup: &OpCodeLookup);
+    fn with_header(&mut self, assembly: bool) -> Self;
+    fn without_header(&self) -> Self;
+    fn verify_possible_header(&self) -> bool;
 }
 
 impl Chunk for Vec<u8> {
@@ -78,5 +84,52 @@ impl Chunk for Vec<u8> {
             }
             println!("\t{:?}", stack);
         }
+    }
+    
+    /// If chunk needs a header, adds one and leaves the original chunk empty.
+    /// Otherwise returns a clone of itself.
+    fn with_header(&mut self, is_assembly: bool) -> Self {
+        if self.verify_possible_header() {
+            return self.to_vec();
+        }
+        let (major, minor, patch) = crate::version();
+        let unix_seconds = Utc::now().timestamp();
+        let (time_0, time_1, time_2, time_3) = (
+            unix_seconds as u8,
+            (unix_seconds >> 8) as u8,
+            (unix_seconds >> 16) as u8,
+            (unix_seconds >> 24) as u8
+        );
+        let mut flags: u8 = 0x0;
+        if is_assembly { // only use first bit for now to indicate bytecode source
+            flags |= 0b1;
+        }
+
+        let mut header: Vec<u8> = vec![
+                CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1, // 0-1 magic number
+                major, minor, patch,                  // 2-4 version number, big endian
+                flags,                                // 5   flags
+                time_0, time_1, time_2, time_3        // 6-9 unix time in UTC timezone in seconds, little endian
+        ];
+        // write the rest as reserved bits
+        for _ in 0..BYTECODE_HEADER_SIZE-header.len() {
+            header.push(u8::MIN);
+        }
+        header.append(self);
+        return header;
+    }
+    
+    /// Removes the header, if one exists.
+    fn without_header(&self) -> Self {
+        if !self.verify_possible_header() {
+            return self.to_vec();
+        }
+        return self[BYTECODE_HEADER_SIZE..].to_vec();
+    }
+    
+    /// Checks that a header could exist at the beginning of the chunk
+    /// (checks magic number and length), does not guarantee that it's a header.
+    fn verify_possible_header(&self) -> bool {
+        self.len() >= 16 && self[0] == 0xCC && self[1] == 0x17
     }
 }

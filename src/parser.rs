@@ -74,9 +74,4 @@ impl Parser {
         }
         return token;
     }
-
-    /// Emits bytecode of completed expressions into a chunk.
-    fn emit_bytecode(self) -> Vec<u8> {
-        todo!()
-    }
 }

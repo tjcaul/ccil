@@ -2,7 +2,6 @@ use std::{fs, process::exit};
 
 use clap::Parser;
 
-use ccil::constants::{BYTECODE_HEADER_SIZE, CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1};
 use ccil::vm::{chunk::Chunk, opcode::OpCode, opcode::OpCodeLookup, stack::StackPointer};
 
 /// Quick and dirty assembler for ccil bytecode, supports both writing to file and immediate execution
@@ -84,31 +83,7 @@ fn main() {
     if args.execute {
         chunk.execute(&opcode_lookup);
     } else {
-        let (major, minor, patch) = match std::env::var("CARGO_PKG_VERSION") {
-            Ok(val) => {
-                // ugly as fuck, but this takes our semver as a string and maps it to three u8s
-                let ver_vec = val.split(".")
-                                          .map(|x| match x.parse::<u8>() {
-                                              Ok(y) => y,
-                                              Err(_) => panic!("Error parsing version number when building header")
-                                        }).collect::<Vec<u8>>();
-                assert_eq!(ver_vec.len(), 3);
-                (ver_vec[0], ver_vec[1], ver_vec[2])
-            },
-            Err(_) => {
-                eprintln!("Error fetching version number when building header");
-                exit(1);
-            }
-        };
-
-        // header is 16 bytes and consists of magic value 0xCC17, followed by big endian semver,
-        // and rest is reserved for now 
-        let mut header: Vec<u8> = vec![CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1, major, minor, patch];
-        for _ in 0..BYTECODE_HEADER_SIZE-header.len() {
-            header.push(u8::MIN);
-        }
-        header.append(&mut chunk);
-        header.to_file(&args.output_path);
+        chunk.with_header(true).to_file(&args.output_path);
     }
 
     exit(0);

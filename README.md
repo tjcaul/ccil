@@ -1,5 +1,15 @@
 # CCIL
 
+<p align="center">
+  <img src="cciltransp.png" alt="CCIL logo" />
+</p>
+
+The Caul-Chen Interpreted Language (CCIL) is a dynamically-typed, general-purpose programming language with a syntax reminiscent of C or JavaScript.
+
+This project serves as the reference implementation of the language, and consists of a bytecode compiler, bytecode assembler/disassembler, REPL, and Virtual Machine.
+
+All code is copyright (c) 2025-26 Tyson Caul and Ray Chen and is [licensed under GPL-3.0](LICENSE).
+
 ## Running
 
 All tools (`ccil`, `ccila`, `ccilb`) can be run with the

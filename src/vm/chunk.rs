@@ -1,6 +1,6 @@
 /*
 vm/stack.rs: Defines a bytecode chunk and associated operations
-Copyright (C) 2025-26 Tyson Caul and Ray Chen
+Copyright (C) 2025-26 The CCIL Developers
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by

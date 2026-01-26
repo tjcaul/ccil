@@ -1,6 +1,6 @@
 /*
 constants.rs: The CCIL constants file
-Copyright (C) 2025-26 Tyson Caul and Ray Chen
+Copyright (C) 2025-26 The CCIL Developers
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -26,6 +26,6 @@ pub const BYTECODE_HEADER_SIZE: usize = 16;
 pub const DISASSEMBLER_METADATA_BORDER_LINE: &str = "// -----------------------------------------------------------\n";
 
 pub const GPL_REPL_NOTICE: &str = formatcp!("The Caul-Chen Interpreted Language, Version {}
-Copyright (C) 2025-26 Tyson Caul and Ray Chen
+Copyright (C) 2025-26 The CCIL Developers
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it under certain conditions.\n", env!("CARGO_PKG_VERSION"));

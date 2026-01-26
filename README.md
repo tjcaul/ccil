@@ -8,7 +8,7 @@ The Caul-Chen Interpreted Language (CCIL) is a dynamically-typed, general-purpos
 
 This project serves as the reference implementation of the language, and consists of a bytecode compiler, bytecode assembler/disassembler, REPL, and Virtual Machine.
 
-All code is copyright (c) 2025-26 Tyson Caul and Ray Chen and is [licensed under GPL-3.0](LICENSE).
+All code is copyright (c) 2025-26 The CCIL Developers and is [licensed under GPL-3.0](LICENSE).
 
 ## Running
 

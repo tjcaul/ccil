@@ -71,7 +71,8 @@ nop
 const 2
 pop
 ```
-compiled from assembly at 9:11:53 AM UTC on January 26, 2026 is encoded as
+compiled from assembly by CCIL v1.2.3 at 9:11:53 AM UTC on January 26, 2026
+is encoded as
 ```
 CC17 0102 0301 D72F 7769 0000 0000 0000 0001 0200 0000 02
 ```

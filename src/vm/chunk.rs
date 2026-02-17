@@ -19,8 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use chrono::Utc;
 
 use crate::constants::{BYTECODE_HEADER_SIZE, CCIL_MAGIC_BYTE_0, CCIL_MAGIC_BYTE_1};
-use crate::vm::opcode::{OpCode, OpCodeLookup};
-use crate::vm::stack::{VecStack, Stack, StackPointer};
+use crate::vm::opcode::{Argument, OpCode};
+use crate::vm::stack::StackPointer;
 
 pub type ChunkOffset = usize;
 
@@ -32,7 +32,6 @@ pub trait Chunk {
     fn write_op(&mut self, opcode: &OpCode);
     fn write_arg(&mut self, arg: StackPointer);
     fn read_arg(&self, offset: ChunkOffset) -> StackPointer;
-    fn execute(&self, lookup: &OpCodeLookup);
     fn with_header(&mut self, assembly: bool) -> Self;
     fn without_header(&self) -> Self;
     fn verify_possible_header(&self) -> bool;
@@ -63,45 +62,18 @@ impl Chunk for Vec<u8> {
         self.write_byte(opcode.byte)
     }
 
-    fn write_arg(&mut self, arg: StackPointer) {
+    fn write_arg(&mut self, arg: Argument) {
         self.write_byte(arg as u8);
         self.write_byte((arg >> 8) as u8);
         self.write_byte((arg >> 16) as u8);
         self.write_byte((arg >> 24) as u8);
     }
 
-    fn read_arg(&self, offset: ChunkOffset) -> StackPointer {
-        self[offset] as StackPointer
-        | (self[offset+1] as StackPointer) << 8
-        | (self[offset+2] as StackPointer) << 16
-        | (self[offset+3] as StackPointer) << 24
-    }
-
-    fn execute(&self, lookup: &OpCodeLookup) {
-        let mut offset = 0;
-        let mut stack = VecStack::new();
-
-        while offset < self.len() {
-            // Get opcode at current pos (guaranteed to be opcode by invariant)
-            print!("{} ", offset);
-            let chunk_code = match lookup.from_byte(self[offset]) {
-                Some(opcode) => opcode,
-                None => panic!("Unknown opcode with value 0x{:02x}", self[offset])
-            };
-            
-            let mut args = Vec::<StackPointer>::new();
-            for i in 0..chunk_code.num_params {
-                args.push(self.read_arg(offset + 1 + 4*i) as StackPointer);
-            }
-
-            // Run handler for op, we get next offset
-            match (chunk_code.handler)(&args, offset, &mut stack) {
-                Ok(Some(new_offset)) => { offset = new_offset; },
-                Ok(None) => { break; }, // program exited
-                Err(err) => { panic!("Error at chunk offset {}: {}", offset, err); }
-            }
-            println!("\t{:?}", stack);
-        }
+    fn read_arg(&self, offset: ChunkOffset) -> Argument {
+        self[offset] as Argument
+        | (self[offset+1] as Argument) << 8
+        | (self[offset+2] as Argument) << 16
+        | (self[offset+3] as Argument) << 24
     }
     
     /// If chunk needs a header, adds one and leaves the original chunk empty.

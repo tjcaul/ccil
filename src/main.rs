@@ -18,20 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use std::{fs::read_to_string, io::{self, Write}, process::exit};
 
-use ccil::{constants::GPL_REPL_NOTICE, parser::{Parser, token::Token}};
-use clap::Parser as ArgParser;
-
-/// The CCIL programming language.
-#[derive(ArgParser, Debug)]
-#[command(version, about, long_about = None)]
-struct Args {
-    /// Path of ccil source file
-    #[arg(default_value_t = String::new())]
-    input_path: String,
-}
+use ccil::{Args, compiler::Compiler, constants::GPL_REPL_NOTICE, dprintln, parser::{Parser, token::Token}, vm::VirtualMachine};
 
 fn repl() -> ! {
     println!("{}", GPL_REPL_NOTICE);
+
+    let compiler = Compiler::new();
+    let mut vm = VirtualMachine::new(&compiler.string_pool);
+
     loop {
         print!("ccil> ");
         let _ = io::stdout().flush();
@@ -43,17 +37,24 @@ fn repl() -> ! {
         let tokenization_result = Token::full_scan(&buffer);
         let mut parser = Parser::new(tokenization_result);
         parser.full_parse();
-        for expr in parser.expressions {
-            println!("{:?}", expr);
+        for expr in &parser.expressions {
+            dprintln!("{:?}", expr);
         }
+
+        let compiled_chunk = compiler.compile(&parser.expressions);
+        vm.execute(compiled_chunk);
     }
 }
 
 fn main() {
-    let args = Args::parse();
+    let args = <Args as clap::Parser>::parse();
     if args.input_path.is_empty() {
         repl();
     }
+
+    let compiler = Compiler::new();
+    let mut vm = VirtualMachine::new(&compiler.string_pool);
+    
     let source_file = match read_to_string(args.input_path) {
         Ok(val) => val,
         Err(error) => {
@@ -65,7 +66,11 @@ fn main() {
     let scan_result = Token::full_scan(&source_file);
     let mut parser = Parser::new(scan_result);
     parser.full_parse();
-    for expr in parser.expressions {
-        println!("{:?}", expr);
+    for expr in &parser.expressions {
+        dprintln!("{:?}", expr);
     }
+
+    let compiled_chunk = compiler.compile(&parser.expressions);
+    
+    vm.execute(compiled_chunk);
 }

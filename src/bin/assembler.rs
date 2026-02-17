@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::{fs, process::exit};
+use std::{cell::RefCell, fs, process::exit};
 
 use clap::Parser;
 
-use ccil::vm::{chunk::Chunk, opcode::OpCode, opcode::OpCodeLookup, stack::StackPointer};
+use ccil::vm::{VirtualMachine, chunk::Chunk, opcode::{OpCode, OpCodeLookup}, stack::StackPointer};
 
 /// Quick and dirty assembler for ccil bytecode, supports both writing to file and immediate execution
 #[derive(Parser, Debug)]
@@ -99,7 +99,10 @@ fn main() {
     }
 
     if args.execute {
-        chunk.execute(&opcode_lookup);
+        // todo: support for assembling strings
+        let temp = RefCell::new(Vec::new());
+        let mut vm = VirtualMachine::new(&temp);
+        vm.execute(chunk);
     } else {
         chunk.with_header(true).to_file(&args.output_path);
     }

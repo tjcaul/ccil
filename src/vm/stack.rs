@@ -19,14 +19,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use std::fmt;
 
 pub type StackPointer = i32;
-pub type StackItem = i8;
+pub type StackItem = i32;
 
 pub trait Shift<T> {
     fn logical_shift(self, shift_amount: T) -> Self;
     fn arithmetic_shift(self, shift_amount: T) -> Self;
 }
 
-impl Shift<StackItem> for i8 {
+impl Shift<StackItem> for i32 {
     fn logical_shift(self, shift_amount: StackItem) -> Self {
         assert!(shift_amount >= 0);
 
@@ -36,11 +36,11 @@ impl Shift<StackItem> for i8 {
 
         // We know shift_amount >= 1, so MSB will be 0 after shift, so
         // u8->i8 conversion is safe.
-        return ((self as u8) >> shift_amount).try_into().unwrap();
+        return ((self as i32) >> shift_amount).try_into().unwrap();
     }
 
     fn arithmetic_shift(self, shift_amount: StackItem) -> Self {
-        return (self as i8) >> (shift_amount as usize) as Self;
+        return (self as i32) >> (shift_amount as usize) as Self;
     }
 }
 

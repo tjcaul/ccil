@@ -131,28 +131,28 @@ impl Token {
         }
     }
 
-    pub fn get_number(self) -> Option<i32> {
+    pub fn get_number(&self) -> Option<&i32> {
         match self {
             Token::Number(n) => Some(n),
             _ => None
         }
     }
 
-    pub fn get_float(self) -> Option<f64> {
+    pub fn get_float(&self) -> Option<&f64> {
         match self {
-            Token::Float(f) => Some(*f),
+            Token::Float(f) => Some(&*f),
             _ => None
         }
     }
 
-    pub fn get_boolean(self) -> Option<bool> {
+    pub fn get_boolean(&self) -> Option<&bool> {
         match self {
             Token::Boolean(b) => Some(b),
             _ => None
         }
     }
 
-    pub fn get_var_name(self) -> Option<String> {
+    pub fn get_var_name(&self) -> Option<&String> {
         match self {
             Token::VarName(v) => Some(v),
             _ => None

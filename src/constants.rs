@@ -29,3 +29,24 @@ pub const GPL_REPL_NOTICE: &str = formatcp!("The Caul-Chen Interpreted Language,
 Copyright (C) 2025-26 The CCIL Developers
 This program comes with ABSOLUTELY NO WARRANTY.
 This is free software, and you are welcome to redistribute it under certain conditions.\n", env!("CARGO_PKG_VERSION"));
+
+// Don't need anything fancy since any encountrance of this means there's problems with our parsing invariants
+pub const GENERIC_COMPILE_ERROR: &str = "Attempted to compile malformed expression";
+
+// type ids for compiler/vm
+pub mod type_id_const {
+    pub const NULL: i32 = 0;
+    pub const NUMBER: i32 = 1;
+    pub const STRING: i32 = 2;
+    pub const FLOAT: i32 = 3;
+    pub const BOOLEAN: i32 = 4;
+
+    pub const UNKNOWN: i32 = -1; // defer type checkng to runtime
+}
+
+pub mod fileno_const {
+    pub const STDIN: i32 = 0;
+    pub const STDOUT: i32 = 1;
+    pub const STDERR: i32 = 2;
+}
+

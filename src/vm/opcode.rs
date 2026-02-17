@@ -112,7 +112,7 @@ const OPCODES: &[OpCode] = &[
     },
     OpCode {
         symbol: "STORE", byte: 0x05,
-        handler: handle_op::handle_store, num_params: 1
+        handler: handle_op::handle_store, num_params: 2
     },
     OpCode {
         symbol: "SWAP", byte: 0x06,
@@ -209,5 +209,17 @@ const OPCODES: &[OpCode] = &[
     OpCode {
         symbol: "RETURN", byte: 0x34,
         handler: handle_op::handle_return, num_params: 1
+    },
+    OpCode {
+        symbol: "LOAD", byte: 0x35,
+        handler: handle_op::handle_load, num_params: 1
+    },
+    OpCode {
+        symbol: "WRITE", byte: 0x36,
+        handler: handle_op::handle_write, num_params: 1
+    },
+    OpCode {
+        symbol: "WRITES", byte: 0x37,
+        handler: handle_op::handle_writes, num_params: 1
     },
 ];

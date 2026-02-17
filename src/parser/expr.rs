@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use crate::parser::{Parser, expr_compare::ExprType, rules::Precedence, token::Token};
+use crate::{constants::GENERIC_COMPILE_ERROR, parser::{Parser, expr_compare::ExprType, rules::Precedence, token::Token}};
 
 #[allow(unused)]
 #[derive(Debug, Clone, PartialEq)]
@@ -39,6 +39,20 @@ pub enum Expr {
     PrintStatement(Box<Expr>),
     ReturnStatement(Box<Expr>),
     IfStatement(Box<Expr>, Box<Expr>),
+}
+
+impl Expr {
+    pub fn get_token(&self) -> &Token {
+        use Expr::*;
+        match self {
+            Unary(token, _) => token,
+            Binary(token, _, _) => token,
+            Literal(token) => token,
+            Variable(token) => token,
+            FunctionCall(token, _) => token,
+            _ => panic!("{}", GENERIC_COMPILE_ERROR)
+        }
+    }
 }
 
 impl Parser {

@@ -7,7 +7,8 @@
 | POP    |           | Remove the top item on the stack; same as DROP 1 |
 | DROP   | count     | Remove count items from the top of the stack |
 | COPY   |           | Copy the index-th item in the stack onto the top |
-| STORE  | index     | Pop the top item off the stack and store it in the index-th spot in the stack, replacing the existing value there |
+| STORE  | id, type  | Pop the top item off the stack and store it in the variable indicated by id, with the type id of type |
+| LOAD   | id        | Load the variable indicated by id to the top of the stack |
 | SWAP   |           | Swap the top two items on the stack; same as ROT 1 |
 | ROT    | count     | Lift up count items on the stack and move the top item to the count position (ROT 2 means `a, b, c, d -> a, d, c, b`) |
 | NEG    |           | Negate the top number on the stack |
@@ -32,3 +33,5 @@
 | IFNZ   | address   | Pop the top of the stack; if it is not zero, jump to the given address |
 | CALL   | address   | Push the address of the next operation to the stack, then jump to the given address |
 | RETURN | count     | Discard count items from the stack, the pop the return address off the stack and jump to it |
+| WRITE  | fileno    | Write the top value of the stack to the file indicated by fileno |
+| WRITES | fileno    | Write the top value of the stack as if it were a string to the file indicated by fileno |

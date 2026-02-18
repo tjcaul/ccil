@@ -20,6 +20,7 @@ use std::{cell::RefCell, fs::File};
 
 use rustc_hash::FxHashMap;
 
+use crate::compiler::VariableId;
 use crate::{dprint, dprintln};
 use crate::vm::{chunk::Chunk, opcode::OpCodeLookup, stack::{Stack, StackPointer, VecStack}, variable_value::VariableValue};
 
@@ -33,7 +34,7 @@ pub mod variable_value;
 pub struct VirtualMachine<'a, 'b> {
     lookup: OpCodeLookup<'a>,
     stack: VecStack,
-    variables: FxHashMap<i32, VariableValue>,
+    variables: FxHashMap<VariableId, VariableValue>,
     string_pool: &'b RefCell<Vec<u8>>,
     opened_files: Vec<File>
 }

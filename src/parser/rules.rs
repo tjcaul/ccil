@@ -81,7 +81,7 @@ impl Token {
             LeftParen | LeftCurly | LeftSquare => Parser::grouping,
 
             // Arithmetic
-            Plus | Star | Slash => Parser::binary,
+            Plus | Star | Slash | Percent => Parser::binary,
             // For ambigious tokens like minus, we use a custom parsing rule
             Minus => Parser::minus,
 
@@ -141,7 +141,7 @@ impl Token {
                     Unary
                 }
             },
-            Star | Slash => Factor,
+            Star | Slash | Percent => Factor,
             Bang | Tilde => Unary,
             SingleAnd => BitwiseAnd,
             Carat => BitwiseXor,

@@ -20,14 +20,17 @@ use std::cell::RefCell;
 
 use rustc_hash::FxHashMap;
 
-use crate::{parser::{expr::Expr, token::Token}, vm::{opcode::{Argument, OpCodeLookup}}};
+use crate::{constants::type_id_const, parser::expr::Expr, vm::opcode::OpCodeLookup};
 
 pub mod emitters;
 pub mod rules;
 
+pub type VariableId = i32;
+pub type CCILTypeId = i32; // disambiguate from std::any::TypeId
+
 pub struct Compiler<'a> {
     lookup: OpCodeLookup<'a>,
-    variables: RefCell<FxHashMap<Token, Argument>>,
+    variables: RefCell<FxHashMap<String, (VariableId, CCILTypeId)>>,
     string_map: RefCell<FxHashMap<String, usize>>,
     pub string_pool: RefCell<Vec<u8>>
 }
@@ -51,12 +54,14 @@ impl Compiler<'_> {
         return retval;
     }
 
-    fn compile_one(&self, expression: &Expr) -> (Vec<u8>, Argument) {
+    fn compile_one(&self, expression: &Expr) -> (Vec<u8>, CCILTypeId) {
         let mut retval = Vec::<u8>::new();
         use Expr::*;
         let (mut compiled, type_id) = match expression {
             Literal(token) => self.compile_literal(token),
             Binary(token, left, right) => self.compile_binary(token, left, right),
+
+            Variable(token) => self.compile_variable(token),
 
             PrintStatement(expr) => self.compile_print(expr),
             _ => todo!()
@@ -65,16 +70,21 @@ impl Compiler<'_> {
         (retval, type_id)
     }
 
-    fn get_or_insert(&self, val: &Token) -> Argument {
+    fn get_or_insert(&self, var_name: &String) -> (VariableId, CCILTypeId) {
         let mut borrowed_variables = self.variables.borrow_mut();
-        let default_sp = borrowed_variables.len() as Argument;
-        match borrowed_variables.get(val) {
-            Some(val) => val.clone(),
+        let default_sp = borrowed_variables.len() as VariableId;
+        match borrowed_variables.get(var_name) {
+            Some(val) => *val,
             None => {
-                borrowed_variables.insert(val.clone(), default_sp);
-                default_sp
+                borrowed_variables.insert(var_name.clone(), (default_sp, type_id_const::UNKNOWN));
+                (default_sp, type_id_const::UNKNOWN)
             },
         }
+    }
+
+    fn set_inferred_type(&self, var_name: &String, type_id: CCILTypeId) {
+        let mut borrowed_variables = self.variables.borrow_mut();
+        borrowed_variables.entry(var_name.clone()).and_modify(|(_, old_id)| *old_id = type_id);
     }
 
     // fn to_variable_value(&self, expression: &Expr) -> VariableValue {

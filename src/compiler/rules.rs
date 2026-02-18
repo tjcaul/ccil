@@ -25,18 +25,73 @@ impl Compiler<'_> {
 
     pub fn compile_binary(&self, token: &Token, left: &Expr, right: &Expr) -> (Vec<u8>, Argument) {
         let mut retval = Vec::<u8>::new();
+        use Token::*;
         match token {
-            Token::Equals => {
-                let var_id = self.get_or_insert(left.get_token());
-                
+            Equals => {
                 let (mut compile_right, type_id) = self.compile_one(right);
                 retval.append(&mut compile_right);
-                let mut assignment = self.emit_assignment(var_id, type_id);
+
+                let var_name = left.get_token().get_var_name().unwrap();
+
+                let (var_id, _) = self.get_or_insert(var_name);
+                self.set_inferred_type(var_name, type_id);
+
+                let mut assignment: Vec<u8> = self.emit_assignment(var_id, type_id);
                 retval.append(&mut assignment);
 
                 (retval, type_id_const::UNKNOWN) // Assignments don't push anything to the stack
             },
-            _ => panic!("{}", GENERIC_COMPILE_ERROR)
+            _ => {
+                let (mut compile_left, left_type_id) = self.compile_one(left);
+                let (mut compile_right, right_type_id) = self.compile_one(right);
+                retval.append(&mut compile_left);
+                retval.append(&mut compile_right);
+                let (instr, type_id) = match token {
+                    Plus => {
+                        match (left_type_id, right_type_id) {
+                            (type_id_const::NUMBER, type_id_const::NUMBER) => {
+                                ("ADD", type_id_const::NUMBER)
+                            },
+                            _ => todo!() // e.g. string plus number or string plus string
+                        }
+                    }
+                    Minus => {
+                        if (left_type_id, right_type_id) == (type_id_const::NUMBER, type_id_const::NUMBER) {
+                            ("SUB", type_id_const::NUMBER)
+                        } else {
+                            panic!("{}", GENERIC_COMPILE_ERROR)
+                        }
+                    }
+                    Star => {
+                        match (left_type_id, right_type_id) {
+                            (type_id_const::NUMBER, type_id_const::NUMBER) => {
+                                ("MUL", type_id_const::NUMBER)
+                            },
+                            _ => todo!() // e.g. string times number
+                        }
+                    }
+                    Slash => {
+                        match (left_type_id, right_type_id) {
+                            (type_id_const::NUMBER, type_id_const::NUMBER) => {
+                                ("DIV", type_id_const::NUMBER)
+                            },
+                            _ => todo!() // float division
+                        }
+                    }
+                    Percent => {
+                        if (left_type_id, right_type_id) == (type_id_const::NUMBER, type_id_const::NUMBER) {
+                            ("MOD", type_id_const::NUMBER)
+                        } else {
+                            panic!("{}", GENERIC_COMPILE_ERROR)
+                        }
+                    }
+                    // TODO: Bitwise, boolean, comparison
+                    _ => panic!("{}", GENERIC_COMPILE_ERROR)
+                };
+                let mut instr_op = self.emit_instr(instr);
+                retval.append(&mut instr_op);
+                (retval, type_id)
+            }
         }
     }
 
@@ -54,5 +109,16 @@ impl Compiler<'_> {
         retval.append(&mut write);
 
         return (retval, type_id_const::UNKNOWN);
+    }
+
+    pub fn compile_variable(&self, token: &Token) -> (Vec<u8>, Argument) {
+        let var_name = match token.get_var_name() {
+            Some(val) => val,
+            None => panic!("{}", "Attempted illegal assignment")
+        };
+
+        let (var_id, type_id) = self.get_or_insert(var_name);
+
+        return (self.emit_load(var_id), type_id);
     }
 }

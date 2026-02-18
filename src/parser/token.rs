@@ -87,7 +87,7 @@ pub enum Token {
     LeftSquare, RightSquare,
     Comma,
     Dot,
-    Minus, Plus, Slash, Star,
+    Minus, Plus, Slash, Star, Percent,
     Semicolon,
     Equals,
     SingleAnd, SingleOr, Tilde, Carat,
@@ -184,6 +184,7 @@ impl Token {
             // Guaranteed to be fine since we treat comments as whitespace
             '/' => (Slash, 1),
             '*' => (Star, 1),
+            '%' => (Percent, 1),
             ';' => (Semicolon, 1),
             '~' => (Tilde, 1),
             '^' => (Carat, 1),

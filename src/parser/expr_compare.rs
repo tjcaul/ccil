@@ -32,7 +32,6 @@ pub enum ExprType {
     CommaSeparatedList,
     Subexprs,
     Variable,
-    VaribleDeclaration,
     FunctionDeclaration,
     FunctionCall,
     ForLoop,
@@ -56,7 +55,6 @@ impl ExprType {
             CommaSeparatedList(_) => Self::CommaSeparatedList,
             Subexprs(_) => Self::Subexprs,
             Variable(_) => Self::Variable,
-            VaribleDeclaration(_) => Self::VaribleDeclaration,
             FunctionDeclaration(_, _, _) => Self::FunctionDeclaration,
             FunctionCall(_, _) => Self::FunctionCall,
             ForLoop(_, _) => Self::ForLoop,
@@ -82,7 +80,6 @@ impl Expr {
             CommaSeparatedList => Self::CommaSeparatedList(Vec::new()),
             Subexprs => Self::Subexprs(Vec::new()),
             Variable => Self::Variable(Token::Dummy),
-            VaribleDeclaration => Self::VaribleDeclaration(Box::new(Expr::Empty)),
             FunctionDeclaration => Self::FunctionDeclaration(
                 Box::new(Expr::Empty), Box::new(Expr::Empty), Box::new(Expr::Empty)
             ),

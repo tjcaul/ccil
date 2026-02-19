@@ -107,7 +107,7 @@ pub enum Token {
     String(String), Number(i32), Float(OrderedFloat<f64>), Boolean(bool),
 
     // Keywords
-    Var, Func, For, While, Print, Return, If, Null,
+    Func, For, While, Print, Return, If, Null,
 
     // Misc
     VarName(String), NewLine, EOF,
@@ -249,7 +249,6 @@ impl Token {
             _ => {
                 let kw = preprocess_keyword_or_varname(slice_to_end);
                 match kw {
-                    "var" => (Var, 3),
                     "func" => (Func, 4),
                     "for" => (For, 3),
                     "while" => (While, 5),

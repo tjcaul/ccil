@@ -110,7 +110,6 @@ impl Token {
             String(_) | Number(_) | Float(_) | Boolean(_) | Null => Parser::literal,
 
             // Keywords all get their own handler
-            Var => Parser::variable_declaration,
             Func => Parser::function_declaration,
             For => Parser::for_loop,
             While => Parser::while_loop,
@@ -130,7 +129,7 @@ impl Token {
         use Token::*;
         use Precedence::*;
         match self {
-            Comma | Var | Func | For | While | Print | Return | If => Lowest,
+            Comma | Func | For | While | Print | Return | If => Lowest,
             LeftParen | LeftCurly | LeftSquare => Grouping,
             Plus => Term,
             // Minus is ambiguous

@@ -31,7 +31,6 @@ pub enum Expr {
     CommaSeparatedList(Vec<Box<Expr>>),
     Subexprs(Vec<Box<Expr>>),
     Variable(Token),
-    VaribleDeclaration(Box<Expr>),
     FunctionDeclaration(Box<Expr>, Box<Expr>, Box<Expr>),
     FunctionCall(Token, Box<Expr>),
     ForLoop(Box<Expr>, Box<Expr>),
@@ -258,16 +257,6 @@ impl Parser {
         }
     }
 
-    /// Parse an expression declaraing a variable, which essentially just contains a variable declaration.
-    pub fn variable_declaration(&mut self, _token: &Token) -> Expr {
-        let variable = self.expected_expression(&ExprType::Variable);
-        self.floating_expressions.push(variable);
-        let assignment = self.expected_expression(
-            &ExprType::Binary
-        );
-        return Expr::VaribleDeclaration(Box::new(assignment));
-    }
-
     /// Parse an expression declaraing a function, which contains (in order):
     /// The function name as a Variable, the arguments as a CommaSeparatedList, and the body as a Subexprs.
     pub fn function_declaration(&mut self, _token: &Token) -> Expr {
@@ -306,12 +295,6 @@ impl Parser {
                 if arg_list.len() != 3 {
                     self.raise_parsing_error(
                         format!("Expected for loop to have 3 arguments, got {}", arg_list.len())
-                    );
-                }
-                let declaration_arg = &*arg_list[0];
-                if !declaration_arg.is_type(&ExprType::VaribleDeclaration) {
-                    self.raise_parsing_error(
-                        "First item of for loop arguments should be Variable Declaration".to_owned()
                     );
                 }
             },

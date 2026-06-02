@@ -199,7 +199,7 @@ pub fn handle_mul(vm: &mut VirtualMachine, args: &[Argument], offset: ChunkOffse
 
     let b = vm.stack.pop().ok_or(POP_ERROR_STR)?;
     let a = vm.stack.pop().ok_or(POP_ERROR_STR)?;
-    let product = a - b;
+    let product = a * b;
     vm.stack.push(product);
     dprintln!("MUL {} {} -> {}", a, b, product);
 

@@ -138,6 +138,7 @@ fn main() {
         None => compile_chunk(file_path)
     };
 
+    dprintln!("Loaded string pool: {:?}", String::from_utf8(string_pool.borrow().to_vec()).unwrap());
     let mut vm = VirtualMachine::new(&string_pool);    
     vm.execute(compiled_chunk);
 }

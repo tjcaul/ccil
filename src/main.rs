@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 use std::{cell::RefCell, fs::{self, create_dir_all, exists, read_to_string}, io::{self, Write}, path::Path, process::exit};
 
 use ccil::{Args, compiler::{Compiler, StringPool}, constants::GPL_REPL_NOTICE, dprintln, parser::{Parser, token::Token}, vm::{VirtualMachine, chunk::Chunk}};
+use chrono::{DateTime, Utc};
 
 fn repl() -> ! {
     println!("{}", GPL_REPL_NOTICE);
@@ -59,20 +60,29 @@ fn get_compiled_chunk(file_path: &Path) -> Option<(Vec<u8>, StringPool)> {
     let bytecode_filename = binding.as_str();
     match exists(bytecode_filename) {
         Ok(true) => {
+            // get chunk with header
+            let headered_chunk: Vec<u8> = Chunk::from_file(bytecode_filename);
+
+            // extract time from header
+            let header_time_bytes = &headered_chunk[6..10];
+            let bytecode_unix_time = header_time_bytes[0] as i64 |
+                                     (header_time_bytes[1] as i64) << 8 |
+                                     (header_time_bytes[2] as i64) << 16 |
+                                     (header_time_bytes[3] as i64) << 24;
+            let bytecode_timestamp = DateTime::from_timestamp(bytecode_unix_time, 0).unwrap();
+
             // recompile if and only if source file postdates bytecode
-            let bytecode_timestamp = fs::metadata(bytecode_filename).unwrap().modified().unwrap();
-            let source_file_timestamp = fs::metadata(file_path).unwrap().modified().unwrap();
+            let source_file_system_time = fs::metadata(file_path).unwrap().modified().unwrap();
+            let source_file_timestamp: DateTime<Utc> = source_file_system_time.into();
 
             if source_file_timestamp > bytecode_timestamp {
                 return None;
             }
 
-            let headered_chunk: Vec<u8> = Chunk::from_file(bytecode_filename);
-
             let binding = &format!("{}.sp", bytecode_filename);
             let string_pool_path = Path::new(binding);
             let string_pool = RefCell::new(fs::read(string_pool_path).unwrap());
-            dprintln!("Using already compiled version of {}", bytecode_filename);
+            println!("Using already compiled version of {}", bytecode_filename);
             Some((headered_chunk.without_header(), string_pool))
         }
         Ok(false) | Err(_) => None,

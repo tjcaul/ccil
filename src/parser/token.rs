@@ -51,7 +51,7 @@ fn tokenize_number_or_float(remaining_block: &str) -> (Token, usize) {
         Err(_) => {}
     };
 
-    match full_literal.parse::<f64>() {
+    match full_literal.parse::<f32>() {
         Ok(val) => return (Token::Float(OrderedFloat(val)), full_literal.len()),
         Err(_) => panic!("Illegal number detected")
     }
@@ -102,9 +102,8 @@ pub enum Token {
     Bang, And, Or,
 
     // Literal
-    // We need 64 bits of float for guaranteed lossless conversion between num and float
     // We use a wrapper provided by the OrderedFloat crate for better equality checks and hashability
-    String(String), Number(i32), Float(OrderedFloat<f64>), Boolean(bool),
+    String(String), Number(i32), Float(OrderedFloat<f32>), Boolean(bool),
 
     // Keywords
     Func, For, While, Print, Return, If, Null,
@@ -138,7 +137,7 @@ impl Token {
         }
     }
 
-    pub fn get_float(&self) -> Option<&f64> {
+    pub fn get_float(&self) -> Option<&f32> {
         match self {
             Token::Float(f) => Some(&*f),
             _ => None

@@ -16,11 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::{cell::RefCell, fs::File};
+use std::fs::File;
 
 use rustc_hash::FxHashMap;
 
-use crate::compiler::VariableId;
+use crate::compiler::{StringPool, VariableId};
 use crate::{dprint, dprintln};
 use crate::vm::{chunk::Chunk, opcode::OpCodeLookup, stack::{Stack, StackPointer, VecStack}, variable_value::VariableValue};
 
@@ -35,12 +35,12 @@ pub struct VirtualMachine<'a, 'b> {
     lookup: OpCodeLookup<'a>,
     stack: VecStack,
     variables: FxHashMap<VariableId, VariableValue>,
-    string_pool: &'b RefCell<Vec<u8>>,
+    string_pool: &'b StringPool,
     opened_files: Vec<File>
 }
 
 impl<'b> VirtualMachine<'_, 'b> {
-    pub fn new(string_pool: &'b RefCell<Vec<u8>>) -> Self {
+    pub fn new(string_pool: &'b StringPool) -> Self {
         Self {
             lookup: OpCodeLookup::new(),
             stack: VecStack::new(),

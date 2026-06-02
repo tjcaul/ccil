@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::cell::RefCell;
+use std::{cell::RefCell, path::Path};
 
 use rustc_hash::FxHashMap;
 
@@ -27,12 +27,13 @@ pub mod rules;
 
 pub type VariableId = i32;
 pub type CCILTypeId = i32; // disambiguate from std::any::TypeId
+pub type StringPool = RefCell<Vec<u8>>;
 
 pub struct Compiler<'a> {
     lookup: OpCodeLookup<'a>,
     variables: RefCell<FxHashMap<String, (VariableId, CCILTypeId)>>,
     string_map: RefCell<FxHashMap<String, usize>>,
-    pub string_pool: RefCell<Vec<u8>>
+    pub string_pool: StringPool
 }
 
 impl Compiler<'_> {
@@ -115,6 +116,17 @@ impl Compiler<'_> {
             }
             borrowed_string_pool.push(0); // null terminator
             val
+        }
+    }
+
+    pub fn write_string_pool(&self, file_path: &Path) {
+        let borrowed_string_pool = self.string_pool.borrow();
+
+        let result = std::fs::write(file_path, borrowed_string_pool.clone());
+
+        match result {
+            Ok(_) => {},
+            Err(_) => panic!("Failed to write string pool")
         }
     }
 }

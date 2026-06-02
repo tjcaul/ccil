@@ -82,7 +82,7 @@ fn get_compiled_chunk(file_path: &Path) -> Option<(Vec<u8>, StringPool)> {
             let binding = &format!("{}.sp", bytecode_filename);
             let string_pool_path = Path::new(binding);
             let string_pool = RefCell::new(fs::read(string_pool_path).unwrap());
-            println!("Using already compiled version of {}", bytecode_filename);
+            dprintln!("Using already compiled version of {}", bytecode_filename);
             Some((headered_chunk.without_header(), string_pool))
         }
         Ok(false) | Err(_) => None,
@@ -137,7 +137,6 @@ fn main() {
         Some((chunk, string_pool)) => (chunk, string_pool),
         None => compile_chunk(file_path)
     };
-
 
     let mut vm = VirtualMachine::new(&string_pool);    
     vm.execute(compiled_chunk);

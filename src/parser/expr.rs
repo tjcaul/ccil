@@ -38,6 +38,8 @@ pub enum Expr {
     PrintStatement(Box<Expr>),
     ReturnStatement(Box<Expr>),
     IfStatement(Box<Expr>, Box<Expr>),
+    QuitStatement,
+    ExitStatement(Box<Expr>)
 }
 
 impl Expr {
@@ -352,5 +354,18 @@ impl Parser {
         self.consume_expected(Token::LeftCurly);
         let subexprs = self.generate_subexprs(&Token::RightCurly);
         return Expr::IfStatement(Box::new(argument), Box::new(subexprs));
+    }
+
+    /// Parse a quit statement. Simple enough.
+    pub fn quit_statement(&mut self, _token: &Token) -> Expr {
+        return Expr::QuitStatement
+    }
+
+    /// Parse an exit statement, with its only field being the exit code.
+    pub fn exit_statement(&mut self, _token: &Token) -> Expr {
+        self.consume_expected(Token::LeftParen);
+        let argument = self.generate_until_token(Token::RightParen);
+        self.consume_expected(Token::RightParen);
+        return Expr::ExitStatement(Box::new(argument));
     }
 }

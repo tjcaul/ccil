@@ -106,7 +106,7 @@ pub enum Token {
     String(String), Number(i32), Float(OrderedFloat<f32>), Boolean(bool),
 
     // Keywords
-    Func, For, While, Print, Return, If, Null,
+    Func, For, While, Print, Return, If, Null, Quit, Exit,
 
     // Misc
     VarName(String), NewLine, EOF,
@@ -257,6 +257,8 @@ impl Token {
                     "true" => (Boolean(true), 4),
                     "false" => (Boolean(false), 5),
                     "null" => (Null, 4),
+                    "quit" => (Quit, 4),
+                    "exit" => (Exit, 4),
                     // if everything else fails we just assume varname
                     _ => (VarName(kw.to_owned()), kw.len())
                 }

@@ -39,6 +39,8 @@ pub enum ExprType {
     PrintStatement,
     ReturnStatement,
     IfStatement,
+    QuitStatement,
+    ExitStatement
 }
 
 impl ExprType {
@@ -61,7 +63,9 @@ impl ExprType {
             WhileLoop(_, _) => Self::WhileLoop,
             PrintStatement(_) => Self::PrintStatement,
             ReturnStatement(_) => Self::ReturnStatement,
-            IfStatement(_, _) => Self::ReturnStatement
+            IfStatement(_, _) => Self::ReturnStatement,
+            QuitStatement => Self::QuitStatement,
+            ExitStatement(_) => Self::ExitStatement
         }
     }
 }
@@ -91,6 +95,8 @@ impl Expr {
             PrintStatement => Self::PrintStatement(Box::new(Expr::Empty)),
             ReturnStatement => Self::ReturnStatement(Box::new(Expr::Empty)),
             IfStatement => Self::IfStatement(Box::new(Expr::Empty), Box::new(Expr::Empty)),
+            QuitStatement => Self::QuitStatement,
+            ExitStatement => Self::ExitStatement(Box::new(Expr::Empty))
         };
         return discriminant(self) == discriminant(&generic_expr);
     }

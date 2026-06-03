@@ -18,13 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::parser::{Parser, expr::Expr, token::Token};
 
-#[allow(unused)]
 pub type ParseRule = fn(&mut Parser, &Token) -> Expr;
 
 /// Defines an order in which tokens should be consumed.
 /// Greater always implies greater precedence (i.e. should be consumed first).
 /// This hierarchy is inspired by JavaScript's.
-#[allow(unused)]
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
 pub enum Precedence {
     Lowest,
@@ -116,6 +114,8 @@ impl Token {
             Print => Parser::print_statement,
             Return => Parser::return_statement,
             If => Parser::if_statement,
+            Quit => Parser::quit_statement,
+            Exit => Parser::exit_statement,
 
             // The following tokens are "unexpected" here because they're only always consumed by other means:
             // RightParen RightCurly RightSquare Semicolon NewLine Dot Equals
@@ -129,7 +129,7 @@ impl Token {
         use Token::*;
         use Precedence::*;
         match self {
-            Comma | Func | For | While | Print | Return | If => Lowest,
+            Comma | Func | For | While | Print | Return | If | Quit | Exit => Lowest,
             LeftParen | LeftCurly | LeftSquare => Grouping,
             Plus => Term,
             // Minus is ambiguous

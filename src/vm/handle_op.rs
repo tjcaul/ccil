@@ -18,11 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 use std::io::Write;
 
-use rustc_hash::FxHashMap;
-
 use crate::dprintln;
 use crate::vm::VirtualMachine;
-use crate::vm::stack::{VecStack, Stack, StackPointer, StackItem, Shift};
+use crate::vm::stack::{Stack, StackPointer, StackItem, Shift};
 use crate::vm::chunk::ChunkOffset;
 use crate::vm::opcode::Argument;
 use crate::vm::variable_value::VariableValue;
@@ -131,6 +129,7 @@ pub fn handle_load(vm: &mut VirtualMachine, args: &[Argument], offset: ChunkOffs
             }
         },
     }
+    dprintln!("LOAD {}", variable_id);
 
     Ok(Some(offset + compute_opcode_size(args.len())))
 }
@@ -426,7 +425,7 @@ pub fn handle_return(vm: &mut VirtualMachine, args: &[Argument], _offset: ChunkO
     Ok(Some(return_address as ChunkOffset))
 }
 
-pub fn handle_exit(args: &[Argument], _offset: ChunkOffset, _stack: &mut VecStack, _variables: &mut FxHashMap<i32, VariableValue>) -> Result<Option<ChunkOffset>, String> {
+pub fn handle_exit(_vm: &mut VirtualMachine, args: &[Argument], _offset: ChunkOffset) -> Result<Option<ChunkOffset>, String> {
     assert_eq!(args.len(), 0);
 
     dprintln!("EXIT");

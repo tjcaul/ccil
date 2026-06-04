@@ -33,5 +33,6 @@
 | IFNZ   | address   | Pop the top of the stack; if it is not zero, jump to the given address |
 | CALL   | address   | Push the address of the next operation to the stack, then jump to the given address |
 | RETURN | count     | Discard count items from the stack, the pop the return address off the stack and jump to it |
+| EXIT   |           | Gracefully exits the program, with the exit code being whatever was at the top of the stack (or zero if the stack is empty) |
 | WRITE  | fileno    | Write the top value of the stack to the file indicated by fileno |
 | WRITES | fileno    | Write the top value of the stack as if it were a string to the file indicated by fileno |

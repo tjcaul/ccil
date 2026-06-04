@@ -22,7 +22,6 @@ use rustc_hash::FxHashMap;
 
 use crate::{constants::type_id_const, parser::expr::Expr, vm::opcode::OpCodeLookup};
 
-pub mod emitters;
 pub mod rules;
 
 pub type VariableId = i32;
@@ -65,6 +64,9 @@ impl Compiler<'_> {
             Variable(token) => self.compile_variable(token),
 
             PrintStatement(expr) => self.compile_print(expr),
+
+            QuitStatement => self.compile_quit(),
+            ExitStatement(expr) => self.compile_exit(expr),
             _ => todo!()
         };
         retval.append(&mut compiled);

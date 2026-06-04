@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 use std::fs::File;
+use std::process::exit;
 
 use rustc_hash::FxHashMap;
 
@@ -69,7 +70,12 @@ impl<'b> VirtualMachine<'_, 'b> {
             // Run handler for op, we get next offset
             match (chunk_code.handler)(self, &args, offset) {
                 Ok(Some(new_offset)) => { offset = new_offset; },
-                Ok(None) => { break; }, // program exited
+                Ok(None) => {
+                    // program exited
+                    // in future, add shutdown/cleanup code here
+                    let exit_code = self.stack.pop().unwrap_or_default();
+                    exit(exit_code);
+                },
                 Err(err) => { panic!("Error at chunk offset {}: {}", offset, err); }
             }
             dprintln!("\t{:?}", self.stack);

@@ -222,4 +222,8 @@ const OPCODES: &[OpCode] = &[
         symbol: "WRITES", byte: 0x37,
         handler: handle_op::handle_writes, num_params: 1
     },
+    OpCode {
+        symbol: "EXIT", byte: 0x38,
+        handler: handle_op::handle_exit, num_params: 0
+    }
 ];

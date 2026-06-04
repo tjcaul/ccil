@@ -1,6 +1,15 @@
-use crate::{compiler::Compiler, constants::{GENERIC_COMPILE_ERROR, fileno_const, type_id_const}, parser::{expr::Expr, token::Token}, vm::opcode::Argument};
+use crate::{compiler::Compiler, constants::{GENERIC_COMPILE_ERROR, fileno_const, type_id_const}, parser::{expr::Expr, token::Token}, vm::{chunk::Chunk, opcode::Argument}};
 
 impl Compiler<'_> {
+    fn emit(&self, instruction: &str, args: &[Argument]) -> Vec<u8> {
+        let mut retval = vec![self.lookup.from_symbol(instruction).unwrap().byte];
+        for arg in args {
+            retval.write_arg(*arg);
+        }
+
+        retval
+    }
+
     pub fn compile_literal(&self, token: &Token) -> (Vec<u8>, Argument) {
         let (val, type_id) = match token {
             Token::Number(val) => (*val, type_id_const::NUMBER),
@@ -20,7 +29,7 @@ impl Compiler<'_> {
             _ => panic!("{}", GENERIC_COMPILE_ERROR)
         };
 
-        (self.emit_constant(val), type_id)
+        (self.emit("CONST", &[val]), type_id)
     }
 
     pub fn compile_binary(&self, token: &Token, left: &Expr, right: &Expr) -> (Vec<u8>, Argument) {
@@ -36,7 +45,7 @@ impl Compiler<'_> {
                 let (var_id, _) = self.get_or_insert(var_name);
                 self.set_inferred_type(var_name, type_id);
 
-                let mut assignment: Vec<u8> = self.emit_assignment(var_id, type_id);
+                let mut assignment: Vec<u8> = self.emit("STORE", &[var_id, type_id]);
                 retval.append(&mut assignment);
 
                 (retval, type_id_const::UNKNOWN) // Assignments don't push anything to the stack
@@ -88,7 +97,7 @@ impl Compiler<'_> {
                     // TODO: Bitwise, boolean, comparison
                     _ => panic!("{}", GENERIC_COMPILE_ERROR)
                 };
-                let mut instr_op = self.emit_instr(instr);
+                let mut instr_op = self.emit(instr, &[]);
                 retval.append(&mut instr_op);
                 (retval, type_id)
             }
@@ -96,15 +105,15 @@ impl Compiler<'_> {
     }
 
     pub fn compile_print(&self, expr: &Expr) -> (Vec<u8>, Argument) {
-        let mut retval = Vec::<u8>::new();
+        let mut retval: Vec<u8> = Vec::<u8>::new();
 
         let (mut compile_expr, type_id) = self.compile_one(expr);
         retval.append(&mut compile_expr);
 
 
         let mut write = match type_id {
-            type_id_const::STRING => self.emit_writes(fileno_const::STDOUT),
-            _ => self.emit_write(fileno_const::STDOUT)
+            type_id_const::STRING => self.emit("WRITES", &[fileno_const::STDOUT]),
+            _ => self.emit("WRITE", &[fileno_const::STDOUT])
         };
         retval.append(&mut write);
 
@@ -119,6 +128,23 @@ impl Compiler<'_> {
 
         let (var_id, type_id) = self.get_or_insert(var_name);
 
-        return (self.emit_load(var_id), type_id);
+        return (self.emit("LOAD", &[var_id]), type_id);
+    }
+
+    pub fn compile_exit(&self, expr: &Expr) -> (Vec<u8>, Argument) {
+        let mut retval: Vec<u8> = Vec::<u8>::new();
+
+        let (mut compile_expr, _) = self.compile_one(expr);
+        retval.append(&mut compile_expr);
+        retval.append(&mut self.emit("EXIT", &[]));
+
+        return (retval, type_id_const::UNKNOWN);
+    }
+
+    pub fn compile_quit(&self) -> (Vec<u8>, Argument) {
+        let mut retval: Vec<u8> = Vec::<u8>::new();
+        retval.append(&mut self.emit("CONST", &[0]));
+        retval.append(&mut self.emit("EXIT", &[]));
+        return (retval, type_id_const::UNKNOWN);
     }
 }
